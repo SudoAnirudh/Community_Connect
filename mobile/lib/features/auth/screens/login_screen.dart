@@ -23,12 +23,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _handleSendOtp() {
-    final phone = _phoneController.text.trim();
+    String phone = _phoneController.text.trim();
     if (phone.length >= 10) {
+      // Ensure E.164 format required by Firebase
+      if (!phone.startsWith('+')) {
+        // Assume India country code if not provided since prefixText is '+91 '
+        phone = '+91$phone';
+      }
       ref.read(authProvider.notifier).sendOtp(phone);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid mobile number')),
+        const SnackBar(content: Text('Please enter a valid 10-digit mobile number')),
       );
     }
   }
