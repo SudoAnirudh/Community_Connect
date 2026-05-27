@@ -57,7 +57,7 @@ class AppTheme {
         AppColors.textPrimaryLight,
         AppColors.textSecondaryLight,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.cardLight,
         elevation: 2,
         shadowColor: Colors.black.withOpacity(0.05),
@@ -128,7 +128,7 @@ class AppTheme {
         AppColors.textPrimaryDark,
         AppColors.textSecondaryDark,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.cardDark,
         elevation: 2,
         shadowColor: Colors.black.withOpacity(0.2),
