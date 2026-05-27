@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:add_2_calendar/add_2_calendar.dart';
 import '../../../../shared/widgets/modern_card.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/models/event_model.dart';
 
 class InvitationCard extends StatefulWidget {
-  final Map<String, dynamic> invitation;
+  final EventModel invitation;
 
   const InvitationCard({super.key, required this.invitation});
 
@@ -18,13 +20,30 @@ class _InvitationCardState extends State<InvitationCard> {
   @override
   void initState() {
     super.initState();
-    _currentStatus = widget.invitation['status'];
+    _currentStatus = widget.invitation.status;
   }
 
   void _updateStatus(String newStatus) {
     setState(() {
       _currentStatus = newStatus;
     });
+    
+    // If accepted, prompt to add to calendar
+    if (newStatus == 'accepted') {
+      _addToCalendar();
+    }
+  }
+  
+  void _addToCalendar() {
+    final event = Event(
+      title: widget.invitation.title,
+      description: widget.invitation.description,
+      location: widget.invitation.venue,
+      startDate: widget.invitation.date,
+      endDate: widget.invitation.date.add(const Duration(hours: 2)), // Default 2 hours duration
+      iosParams: const IOSParams(reminder: Duration(minutes: 60)),
+    );
+    Add2Calendar.addEvent2Cal(event);
   }
 
   @override
@@ -43,13 +62,18 @@ class _InvitationCardState extends State<InvitationCard> {
               height: 160,
               width: double.infinity,
               decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: NetworkImage(widget.invitation['imageUrl']),
-                  fit: BoxFit.cover,
-                ),
+                color: theme.colorScheme.surfaceContainerHighest,
+                image: widget.invitation.imageUrl != null 
+                    ? DecorationImage(
+                        image: NetworkImage(widget.invitation.imageUrl!),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
               child: Stack(
                 children: [
+                  if (widget.invitation.imageUrl == null)
+                    const Center(child: Icon(PhosphorIconsRegular.image, size: 48)),
                   Positioned(
                     top: 12,
                     right: 12,
@@ -60,7 +84,7 @@ class _InvitationCardState extends State<InvitationCard> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        'Hosted by ${widget.invitation['host']}',
+                        'Hosted by ${widget.invitation.host}',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -80,17 +104,39 @@ class _InvitationCardState extends State<InvitationCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.invitation['title'],
+                    widget.invitation.title,
                     style: theme.textTheme.displaySmall,
                   ),
                   const SizedBox(height: 12),
-                  _buildInfoRow(context, PhosphorIconsRegular.calendarBlank, '${widget.invitation['date']} at ${widget.invitation['time']}'),
+                  _buildInfoRow(context, PhosphorIconsRegular.calendarBlank, '${widget.invitation.date.toLocal().toString().split(' ')[0]} at ${widget.invitation.time}'),
                   const SizedBox(height: 8),
-                  _buildInfoRow(context, PhosphorIconsRegular.mapPin, widget.invitation['venue']),
+                  _buildInfoRow(context, PhosphorIconsRegular.mapPin, widget.invitation.venue),
                   const SizedBox(height: 16),
                   
+                  // Attachments
+                  if (widget.invitation.attachments.isNotEmpty) ...[
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    Text('Attachments', style: theme.textTheme.labelLarge),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: widget.invitation.attachments.map((path) => ActionChip(
+                        avatar: const Icon(PhosphorIconsRegular.downloadSimple, size: 16),
+                        label: const Text('Download Invite'),
+                        onPressed: () {
+                          // TODO: implement download
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Downloading attachment...')),
+                          );
+                        },
+                      )).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  
                   // RSVP Actions
-                  if (_currentStatus == 'pending')
+                  if (_currentStatus == 'pending' || _currentStatus == 'upcoming')
                     Row(
                       children: [
                         Expanded(
@@ -133,18 +179,26 @@ class _InvitationCardState extends State<InvitationCard> {
                                 : AppColors.error.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Center(
-                        child: Text(
-                          'You responded: ${_currentStatus.toUpperCase()}',
-                          style: TextStyle(
-                            color: _currentStatus == 'accepted'
-                                ? AppColors.primaryGreen
-                                : _currentStatus == 'maybe'
-                                    ? AppColors.warning
-                                    : AppColors.error,
-                            fontWeight: FontWeight.bold,
+                      child: Column(
+                        children: [
+                          Text(
+                            'You responded: ${_currentStatus.toUpperCase()}',
+                            style: TextStyle(
+                              color: _currentStatus == 'accepted'
+                                  ? AppColors.primaryGreen
+                                  : _currentStatus == 'maybe'
+                                      ? AppColors.warning
+                                      : AppColors.error,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
+                          if (_currentStatus == 'accepted')
+                            TextButton.icon(
+                              onPressed: _addToCalendar,
+                              icon: const Icon(PhosphorIconsRegular.calendarPlus),
+                              label: const Text('Add to Calendar'),
+                            ),
+                        ],
                       ),
                     ),
                 ],

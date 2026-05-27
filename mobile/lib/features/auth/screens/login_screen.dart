@@ -66,57 +66,70 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Header illustration
-              Center(
-                child: Image.asset(
-                  'assets/images/login_illustration.png',
-                  height: 200,
-                  fit: BoxFit.contain,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
                 ),
-              ).animate().fade(duration: 600.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
-              const SizedBox(height: 24),
-              
-              Text(
-                'Welcome to\nCommunityConnect',
-                style: theme.textTheme.displayLarge?.copyWith(
-                  height: 1.2,
-                ),
-              ).animate().fade(delay: 200.ms, duration: 600.ms).slideX(begin: -0.05, end: 0, curve: Curves.easeOutQuad),
-              const SizedBox(height: 12),
-              Text(
-                'Enter your mobile number to securely log in to your local community.',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.6),
-                ),
-              ).animate().fade(delay: 300.ms, duration: 600.ms).slideX(begin: -0.05, end: 0, curve: Curves.easeOutQuad),
-              const SizedBox(height: 48),
+                child: IntrinsicHeight(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Header illustration
+                        Center(
+                          child: Image.asset(
+                            'assets/images/login_illustration.png',
+                            height: 200,
+                            fit: BoxFit.contain,
+                          ),
+                        ).animate().fade(duration: 600.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
+                        const SizedBox(height: 24),
+                        
+                        Text(
+                          'Welcome to\nCommunityConnect',
+                          style: theme.textTheme.displayLarge?.copyWith(
+                            height: 1.2,
+                          ),
+                        ).animate().fade(delay: 200.ms, duration: 600.ms).slideX(begin: -0.05, end: 0, curve: Curves.easeOutQuad),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Enter your mobile number to securely log in to your local community.',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: theme.colorScheme.onSurface.withOpacity(0.6),
+                          ),
+                        ).animate().fade(delay: 300.ms, duration: 600.ms).slideX(begin: -0.05, end: 0, curve: Curves.easeOutQuad),
+                        const SizedBox(height: 48),
 
-              // Phone Input Field
-              TextField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                style: theme.textTheme.bodyLarge,
-                decoration: const InputDecoration(
-                  labelText: 'Mobile Number',
-                  prefixText: '+91 ',
-                  prefixIcon: Icon(PhosphorIconsRegular.phone),
-                ),
-              ).animate().fade(delay: 400.ms, duration: 600.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
-              const SizedBox(height: 32),
+                        // Phone Input Field
+                        TextField(
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                          style: theme.textTheme.bodyLarge,
+                          decoration: const InputDecoration(
+                            labelText: 'Mobile Number',
+                            prefixText: '+91 ',
+                            prefixIcon: Icon(PhosphorIconsRegular.phone),
+                          ),
+                        ).animate().fade(delay: 400.ms, duration: 600.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
+                        const SizedBox(height: 32),
 
-              PrimaryButton(
-                text: 'Send OTP',
-                isLoading: isLoading,
-                onPressed: _handleSendOtp,
-              ).animate().fade(delay: 500.ms, duration: 600.ms).scale(begin: const Offset(0.95, 0.95), curve: Curves.easeOutQuad),
-            ],
-          ),
+                        PrimaryButton(
+                          text: 'Send OTP',
+                          isLoading: isLoading,
+                          onPressed: _handleSendOtp,
+                        ).animate().fade(delay: 500.ms, duration: 600.ms).scale(begin: const Offset(0.95, 0.95), curve: Curves.easeOutQuad),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );

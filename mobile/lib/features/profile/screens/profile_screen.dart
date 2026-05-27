@@ -3,11 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../../../core/mocks/mock_data.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../../../core/providers/family_providers.dart';
 import '../widgets/family_info_card.dart';
 import '../widgets/member_list_item.dart';
-import '../widgets/join_request_card.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -17,8 +16,6 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  // Local state to manage mock UI interactions
-  List<Map<String, dynamic>> _joinRequests = List.from(MockData.joinRequests);
 
   Future<void> _handleLogout() async {
     await ref.read(authProvider.notifier).signOut();
@@ -27,15 +24,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  void _removeRequest(String requestId) {
-    setState(() {
-      _joinRequests.removeWhere((req) => req['requestId'] == requestId);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final familyAsync = ref.watch(currentFamilyProvider);
+    final currentUserAsync = ref.watch(currentUserModelProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -53,58 +46,90 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 100),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            FamilyInfoCard(family: MockData.currentFamily),
-            const SizedBox(height: 24),
-            
-            if (_joinRequests.isNotEmpty) ...[
-              Text(
-                'Join Requests (${_joinRequests.length})',
-                style: theme.textTheme.displaySmall,
+      body: familyAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(child: Text('Error: $error')),
+        data: (family) {
+          if (family == null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(PhosphorIconsRegular.houseLine, size: 64),
+                  const SizedBox(height: 16),
+                  Text('Not part of any family.', style: theme.textTheme.bodyLarge),
+                  const SizedBox(height: 16),
+                  // Logout Button
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _handleLogout,
+                        icon: const Icon(PhosphorIconsRegular.signOut),
+                        label: const Text('Log Out'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: theme.colorScheme.error,
+                          side: BorderSide(color: theme.colorScheme.error.withOpacity(0.5)),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              ..._joinRequests.map((req) => JoinRequestCard(
-                request: req,
-                onApprove: () => _removeRequest(req['requestId']),
-                onReject: () => _removeRequest(req['requestId']),
-              )),
-              const SizedBox(height: 24),
-            ],
+            );
+          }
 
-            Text(
-              'Verified Members',
-              style: theme.textTheme.displaySmall,
-            ),
-            const SizedBox(height: 12),
-            ...MockData.familyMembers.map((member) => MemberListItem(member: member)),
-            
-            const SizedBox(height: 32),
-            const Divider(),
-            const SizedBox(height: 16),
-            
-            // Logout Button
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _handleLogout,
-                icon: const Icon(PhosphorIconsRegular.signOut),
-                label: const Text('Log Out'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: theme.colorScheme.error,
-                  side: BorderSide(color: theme.colorScheme.error.withOpacity(0.5)),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+          return SingleChildScrollView(
+            padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 100),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FamilyInfoCard(family: family),
+                const SizedBox(height: 24),
+                
+                Text(
+                  'Verified Members',
+                  style: theme.textTheme.displaySmall,
+                ),
+                const SizedBox(height: 12),
+                
+                // Show current user as a member for now
+                currentUserAsync.when(
+                  data: (user) => user != null ? MemberListItem(member: user) : const SizedBox(),
+                  loading: () => const CircularProgressIndicator(),
+                  error: (_, __) => const SizedBox(),
+                ),
+                
+                const SizedBox(height: 32),
+                const Divider(),
+                const SizedBox(height: 16),
+                
+                // Logout Button
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _handleLogout,
+                    icon: const Icon(PhosphorIconsRegular.signOut),
+                    label: const Text('Log Out'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: theme.colorScheme.error,
+                      side: BorderSide(color: theme.colorScheme.error.withOpacity(0.5)),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/widgets/modern_card.dart';
+import '../../../../core/models/user_model.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class MemberListItem extends StatelessWidget {
-  final Map<String, dynamic> member;
+  final UserModel member;
 
   const MemberListItem({super.key, required this.member});
 
@@ -17,7 +19,8 @@ class MemberListItem extends StatelessWidget {
         child: Row(
           children: [
             CircleAvatar(
-              backgroundImage: NetworkImage(member['avatar']),
+              backgroundColor: theme.colorScheme.surfaceContainerHighest,
+              child: Icon(PhosphorIconsRegular.user, color: theme.colorScheme.primary),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -25,15 +28,15 @@ class MemberListItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    member['name'],
+                    member.name,
                     style: theme.textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    member['role'],
+                    member.role,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: member['role'] == 'Family Admin' 
+                      color: member.role.toLowerCase() == 'admin' 
                         ? theme.colorScheme.primary 
                         : theme.colorScheme.onSurface.withOpacity(0.6),
                     ),

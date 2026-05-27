@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../../../shared/widgets/modern_card.dart';
 import '../../../../shared/widgets/status_badge.dart';
+import '../../../../core/models/family_model.dart';
 
 class FamilyInfoCard extends StatelessWidget {
-  final Map<String, dynamic> family;
+  final FamilyModel family;
 
   const FamilyInfoCard({super.key, required this.family});
 
@@ -40,11 +41,11 @@ class FamilyInfoCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            family['familyName'],
+                            family.name,
                             style: theme.textTheme.displayMedium,
                           ),
                         ),
-                        if (family['verificationStatus'] == 'Approved')
+                        if (family.verificationStatus.toLowerCase() == 'approved')
                           Icon(
                             PhosphorIconsFill.sealCheck,
                             color: theme.colorScheme.primary,
@@ -54,14 +55,14 @@ class FamilyInfoCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      family['houseName'],
+                      family.houseName,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
                     const SizedBox(height: 8),
                     StatusBadge(
-                      text: 'Ward ${family['wardNumber']}',
+                      text: 'Ward ${family.wardNumber}',
                       priority: 'low',
                     ),
                   ],
@@ -76,7 +77,7 @@ class FamilyInfoCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Family ID: ${family['familyId']}',
+                'Family ID: ${family.id.length > 8 ? family.id.substring(0, 8) : family.id}',
                 style: theme.textTheme.bodySmall,
               ),
               InkWell(
