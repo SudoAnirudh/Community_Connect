@@ -1,0 +1,22 @@
+node_modules/
+.DS_Store
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Mobile (Flutter/Dart)
+mobile/build/
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/.pub-cache/
+mobile/.pub/
+
+# Admin (React)
+admin/dist/
+admin/build/
+admin/.env
