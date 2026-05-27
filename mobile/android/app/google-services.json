@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "658258724893",
+    "project_id": "communityconnect-eb5e1",
+    "storage_bucket": "communityconnect-eb5e1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:658258724893:android:3610d46175767e02d81ef4",
+        "android_client_info": {
+          "package_name": "com.communityconnect"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBrDjWagSH4r2TLg5J4LSjWey-d0BUnoYk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

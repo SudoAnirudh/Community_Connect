@@ -38,11 +38,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authState = ref.watch(authProvider);
 
     // Listen to state changes to navigate to OTP screen
-    ref.listen<AuthStateData>(authProvider, (previous, next) {
-      if (next.status == AuthState.otpSent) {
-        context.push('/otp');
-      }
-    });
+    ref.listen<AuthStateData>(
+      authProvider,
+      (previous, next) {
+        if (next.status == AuthState.otpSent) {
+          context.push('/otp');
+        } else if (next.status == AuthState.authenticated) {
+          context.go('/home');
+        } else if (next.status == AuthState.error && next.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(next.errorMessage!)),
+          );
+        }
+      },
+    );
 
     final isLoading = authState.status == AuthState.loading;
     final theme = Theme.of(context);

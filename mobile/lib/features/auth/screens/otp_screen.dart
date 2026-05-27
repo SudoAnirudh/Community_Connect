@@ -43,9 +43,10 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     final theme = Theme.of(context);
     final isLoading = authState.status == AuthState.loading;
 
-    // Listen for error messages
     ref.listen<AuthStateData>(authProvider, (previous, next) {
-      if (next.status == AuthState.error && next.errorMessage != null) {
+      if (next.status == AuthState.authenticated) {
+        context.go('/home');
+      } else if (next.status == AuthState.error && next.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(next.errorMessage!)),
         );

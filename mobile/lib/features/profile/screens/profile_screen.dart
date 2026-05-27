@@ -20,9 +20,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   // Local state to manage mock UI interactions
   List<Map<String, dynamic>> _joinRequests = List.from(MockData.joinRequests);
 
-  void _handleLogout() {
-    ref.read(authProvider.notifier).reset();
-    context.go('/login');
+  Future<void> _handleLogout() async {
+    await ref.read(authProvider.notifier).signOut();
+    if (mounted) {
+      context.go('/login');
+    }
   }
 
   void _removeRequest(String requestId) {
