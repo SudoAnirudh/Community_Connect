@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../../shared/widgets/primary_button.dart';
 import '../providers/auth_provider.dart';
@@ -50,6 +51,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           context.push('/otp');
         } else if (next.status == AuthState.authenticated) {
           context.go('/home');
+        } else if (next.status == AuthState.needsOnboarding) {
+          context.go('/onboarding');
         } else if (next.status == AuthState.error && next.errorMessage != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(next.errorMessage!)),
@@ -69,34 +72,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo placeholder
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
-                  shape: BoxShape.circle,
+              // Header illustration
+              Center(
+                child: Image.asset(
+                  'assets/images/login_illustration.png',
+                  height: 200,
+                  fit: BoxFit.contain,
                 ),
-                child: Icon(
-                  PhosphorIconsRegular.usersThree,
-                  size: 48,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-              const SizedBox(height: 32),
+              ).animate().fade(duration: 600.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
+              const SizedBox(height: 24),
               
               Text(
                 'Welcome to\nCommunityConnect',
                 style: theme.textTheme.displayLarge?.copyWith(
                   height: 1.2,
                 ),
-              ),
+              ).animate().fade(delay: 200.ms, duration: 600.ms).slideX(begin: -0.05, end: 0, curve: Curves.easeOutQuad),
               const SizedBox(height: 12),
               Text(
                 'Enter your mobile number to securely log in to your local community.',
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: theme.colorScheme.onSurface.withOpacity(0.6),
                 ),
-              ),
+              ).animate().fade(delay: 300.ms, duration: 600.ms).slideX(begin: -0.05, end: 0, curve: Curves.easeOutQuad),
               const SizedBox(height: 48),
 
               // Phone Input Field
@@ -109,14 +107,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   prefixText: '+91 ',
                   prefixIcon: Icon(PhosphorIconsRegular.phone),
                 ),
-              ),
+              ).animate().fade(delay: 400.ms, duration: 600.ms).slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
               const SizedBox(height: 32),
 
               PrimaryButton(
                 text: 'Send OTP',
                 isLoading: isLoading,
                 onPressed: _handleSendOtp,
-              ),
+              ).animate().fade(delay: 500.ms, duration: 600.ms).scale(begin: const Offset(0.95, 0.95), curve: Curves.easeOutQuad),
             ],
           ),
         ),

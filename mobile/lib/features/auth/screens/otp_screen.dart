@@ -27,9 +27,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     final otp = _otpController.text.trim();
     if (otp.length == 6) {
       final success = await ref.read(authProvider.notifier).verifyOtp(otp);
-      if (success && mounted) {
-        context.go('/home'); // Navigate to main shell
-      }
+      // Removed the manual context.go('/home') here since it is handled by the listener
+      // We only needed this if we weren't listening to AuthState changes.
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a 6-digit OTP')),
@@ -46,6 +45,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     ref.listen<AuthStateData>(authProvider, (previous, next) {
       if (next.status == AuthState.authenticated) {
         context.go('/home');
+      } else if (next.status == AuthState.needsOnboarding) {
+        context.go('/onboarding');
       } else if (next.status == AuthState.error && next.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(next.errorMessage!)),

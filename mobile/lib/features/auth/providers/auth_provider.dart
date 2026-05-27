@@ -1,7 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/repositories/user_repository.dart';
 
-enum AuthState { initial, loading, otpSent, authenticated, error }
+enum AuthState { initial, loading, otpSent, authenticated, needsOnboarding, error }
 
 class AuthStateData {
   final AuthState status;
@@ -33,14 +34,35 @@ class AuthStateData {
 
 class AuthNotifier extends Notifier<AuthStateData> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final UserRepository _userRepo = UserRepository();
 
   @override
   AuthStateData build() {
     // Check if the user is already signed in on app start
     if (_auth.currentUser != null) {
-      return const AuthStateData(status: AuthState.authenticated);
+      Future.microtask(() => _checkUserExists());
+      return const AuthStateData(status: AuthState.loading);
     }
     return const AuthStateData(status: AuthState.initial);
+  }
+
+  Future<void> _checkUserExists() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      try {
+        final userModel = await _userRepo.getUser(user.uid);
+        if (userModel == null) {
+          state = state.copyWith(status: AuthState.needsOnboarding);
+        } else {
+          state = state.copyWith(status: AuthState.authenticated);
+        }
+      } catch (e) {
+        state = state.copyWith(
+          status: AuthState.error,
+          errorMessage: 'Failed to fetch user data: ${e.toString()}',
+        );
+      }
+    }
   }
 
   Future<void> sendOtp(String phoneNumber) async {
@@ -58,7 +80,7 @@ class AuthNotifier extends Notifier<AuthStateData> {
           //    user action.
           try {
             await _auth.signInWithCredential(credential);
-            state = state.copyWith(status: AuthState.authenticated);
+            await _checkUserExists();
           } catch (e) {
             state = state.copyWith(
               status: AuthState.error,
@@ -112,7 +134,7 @@ class AuthNotifier extends Notifier<AuthStateData> {
       );
 
       await _auth.signInWithCredential(credential);
-      state = state.copyWith(status: AuthState.authenticated);
+      await _checkUserExists();
       return true;
     } on FirebaseAuthException catch (e) {
       state = state.copyWith(
@@ -137,6 +159,10 @@ class AuthNotifier extends Notifier<AuthStateData> {
   Future<void> signOut() async {
     await _auth.signOut();
     reset();
+  }
+
+  void completeOnboarding() {
+    state = state.copyWith(status: AuthState.authenticated);
   }
 
   void reset() {
