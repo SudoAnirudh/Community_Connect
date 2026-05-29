@@ -16,10 +16,23 @@ class JoinFamilyScreen extends ConsumerStatefulWidget {
 
 class _JoinFamilyScreenState extends ConsumerState<JoinFamilyScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _familyNameController = TextEditingController();
+  final TextEditingController _houseNameController = TextEditingController();
+  final TextEditingController _wardNumberController = TextEditingController();
+  
   bool _isLoading = false;
   FamilyModel? _foundFamily;
   String? _error;
   bool _requestSent = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _familyNameController.dispose();
+    _houseNameController.dispose();
+    _wardNumberController.dispose();
+    super.dispose();
+  }
 
   void _searchFamily() async {
     final familyId = _searchController.text.trim();
@@ -80,28 +93,93 @@ class _JoinFamilyScreenState extends ConsumerState<JoinFamilyScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+  void _createFamily() async {
+    final familyName = _familyNameController.text.trim();
+    final houseName = _houseNameController.text.trim();
+    final wardNumber = _wardNumberController.text.trim();
+
+    if (familyName.isEmpty || houseName.isEmpty || wardNumber.isEmpty) {
+      setState(() => _error = 'Please fill all fields');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final userModel = await ref.read(currentUserModelProvider.future);
+      if (userModel == null) throw Exception("User not found");
+
+      // Generate a Family ID
+      final cleanFamily = familyName.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
+      final cleanHouse = houseName.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '').toLowerCase();
+      final randomSuffix = (1000 + DateTime.now().millisecondsSinceEpoch % 9000).toString();
+      final generatedId = '${cleanFamily}_${cleanHouse}_$randomSuffix';
+
+      final newFamily = FamilyModel(
+        id: generatedId,
+        name: familyName,
+        houseName: houseName,
+        wardNumber: wardNumber,
+        adminUid: userModel.uid,
+        memberUids: [userModel.uid],
+        verificationStatus: 'pending',
+      );
+
+      // Save to Firestore
+      final familyRepo = ref.read(familyRepositoryProvider);
+      await familyRepo.createFamily(newFamily);
+
+      // Update User Model
+      final updatedUser = userModel.copyWith(
+        familyId: generatedId,
+        role: 'admin',
+      );
+      final userRepo = ref.read(userRepositoryProvider);
+      await userRepo.updateUser(updatedUser);
+
+      // Invalidate current user provider so it refreshes
+      ref.invalidate(currentUserModelProvider);
+      
+      // Proceed to the app
+      ref.read(authProvider.notifier).completeFamilyJoin();
+
+    } catch (e) {
+      setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Join a Family'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Family Setup'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Join Family'),
+              Tab(text: 'Create Family'),
+            ],
+          ),
+        ),
+        body: SafeArea(
           child: _requestSent 
-            ? _buildRequestSentState(theme)
-            : _buildSearchState(theme),
+            ? Padding(padding: const EdgeInsets.all(24.0), child: _buildRequestSentState(theme))
+            : TabBarView(
+                children: [
+                  Padding(padding: const EdgeInsets.all(24.0), child: _buildSearchState(theme)),
+                  Padding(padding: const EdgeInsets.all(24.0), child: _buildCreateState(theme)),
+                ],
+              ),
         ),
       ),
     );
@@ -178,6 +256,62 @@ class _JoinFamilyScreenState extends ConsumerState<JoinFamilyScreen> {
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildCreateState(ThemeData theme) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Start a new family',
+            style: theme.textTheme.displayMedium,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Create a new household space for your family members to join.',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.6),
+            ),
+          ),
+          const SizedBox(height: 32),
+          TextField(
+            controller: _familyNameController,
+            decoration: const InputDecoration(
+              labelText: 'Family Name',
+              hintText: 'e.g. The Smiths',
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _houseNameController,
+            decoration: const InputDecoration(
+              labelText: 'House Name',
+              hintText: 'e.g. White House',
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _wardNumberController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Ward Number',
+              hintText: 'e.g. 12',
+            ),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 16),
+            Text(_error!, style: TextStyle(color: theme.colorScheme.error)),
+          ],
+          const SizedBox(height: 32),
+          PrimaryButton(
+            text: 'Create Family',
+            isLoading: _isLoading,
+            onPressed: _createFamily,
+          ),
+        ],
+      ),
     );
   }
 
