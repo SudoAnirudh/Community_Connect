@@ -40,15 +40,14 @@ class CommunityConnectApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
-    return OfflineBannerWrapper(
-      child: MaterialApp.router(
-        title: 'CommunityConnect',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system, // Automatically switch based on device settings
-        routerConfig: router,
-        debugShowCheckedModeBanner: false,
-      ),
+    return MaterialApp.router(
+      title: 'CommunityConnect',
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system, // Automatically switch based on device settings
+      routerConfig: router,
+      debugShowCheckedModeBanner: false,
+      builder: (context, child) => OfflineBannerWrapper(child: child!),
     );
   }
 }

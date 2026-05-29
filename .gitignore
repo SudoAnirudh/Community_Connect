@@ -50,6 +50,11 @@ mobile/ios/Flutter/.last_build_id
 mobile/android/local.properties
 mobile/android/key.properties
 mobile/android/.gradle/
+mobile/android/.kotlin/
+mobile/android/.cxx/
+mobile/android/captures/
+mobile/android/build/
+mobile/android/app/build/
 mobile/ios/.symlinks/
 mobile/ios/Pods/
 
