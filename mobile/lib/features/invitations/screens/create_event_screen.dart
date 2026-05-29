@@ -46,7 +46,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   }
 
   Future<void> _pickFiles() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    FilePickerResult? result = await FilePicker.pickFiles(
       allowMultiple: true,
       type: FileType.custom,
       allowedExtensions: ['pdf', 'jpg', 'png'],
@@ -83,7 +83,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       // and get their download URLs. For now, we will just use dummy strings or local paths.
       
       final event = EventModel(
-        id: const Uuid().v4(),
+        id: Uuid().v4(),
         title: _titleController.text,
         description: _descController.text,
         date: DateTime.tryParse(_dateController.text) ?? DateTime.now(), // Real app would use a DatePicker

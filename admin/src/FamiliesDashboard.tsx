@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { collection, query, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import { Check, X, CircleNotch } from '@phosphor-icons/react';

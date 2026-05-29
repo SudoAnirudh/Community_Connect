@@ -7,6 +7,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../../../../core/providers/family_providers.dart';
 import '../widgets/family_info_card.dart';
 import '../widgets/member_list_item.dart';
+import '../widgets/join_requests_widget.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -92,6 +93,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 FamilyInfoCard(family: family),
                 const SizedBox(height: 24),
                 
+                currentUserAsync.when(
+                  data: (user) {
+                    if (user != null && user.uid == family.adminUid) {
+                      return JoinRequestsWidget(family: family);
+                    }
+                    return const SizedBox.shrink();
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
+
                 Text(
                   'Verified Members',
                   style: theme.textTheme.displaySmall,

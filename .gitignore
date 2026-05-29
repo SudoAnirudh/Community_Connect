@@ -1,22 +1,68 @@
-node_modules/
+# =========================
+# Operating System Files
+# =========================
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# IDEs
+# =========================
+# IDEs and Editors
+# =========================
 .idea/
 .vscode/
 *.swp
 *.swo
+*~
+*.bak
 
-# Mobile (Flutter/Dart)
-mobile/build/
+# =========================
+# Node / Web (Admin Portal)
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+admin/dist/
+admin/dist-ssr/
+admin/build/
+admin/.env
+admin/.env.local
+admin/.env.*.local
+admin/coverage/
+
+# =========================
+# Flutter / Dart (Mobile App)
+# =========================
+# Flutter/Dart/Pub
 mobile/.dart_tool/
 mobile/.flutter-plugins
 mobile/.flutter-plugins-dependencies
 mobile/.packages
 mobile/.pub-cache/
 mobile/.pub/
+mobile/build/
+mobile/ios/Flutter/.last_build_id
+mobile/android/local.properties
+mobile/android/key.properties
+mobile/android/.gradle/
+mobile/ios/.symlinks/
+mobile/ios/Pods/
 
-# Admin (React)
-admin/dist/
-admin/build/
-admin/.env
+# =========================
+# Firebase
+# =========================
+.firebase/
+firebase-debug.log
+firebase-debug.log.*
+firestore-debug.log
+
+# =========================
+# Misc
+# =========================
+coverage/
+*.log

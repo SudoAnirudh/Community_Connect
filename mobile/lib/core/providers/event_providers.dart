@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,27 +15,30 @@ final eventsStreamProvider = StreamProvider<List<EventModel>>((ref) {
   return repository.getEventsStream();
 });
 
-final eventCreationProvider = StateNotifierProvider<EventCreationNotifier, AsyncValue<void>>((ref) {
-  return EventCreationNotifier(ref.watch(eventRepositoryProvider));
+final eventCreationProvider = AsyncNotifierProvider<EventCreationNotifier, void>(() {
+  return EventCreationNotifier();
 });
 
-class EventCreationNotifier extends StateNotifier<AsyncValue<void>> {
-  final EventRepository _repository;
-  final _uuid = const Uuid();
+class EventCreationNotifier extends AsyncNotifier<void> {
+  late EventRepository _repository;
 
-  EventCreationNotifier(this._repository) : super(const AsyncValue.data(null));
+  @override
+  FutureOr<void> build() {
+    _repository = ref.watch(eventRepositoryProvider);
+  }
 
   Future<void> createEvent(EventModel event) async {
     state = const AsyncValue.loading();
     try {
       List<String> uploadedUrls = [];
+      const uuid = Uuid();
       
       // Upload any local attachments to Firebase Storage
       for (String path in event.attachments) {
         if (!path.startsWith('http')) {
           File file = File(path);
           if (await file.exists()) {
-            String fileName = _uuid.v4();
+            String fileName = uuid.v4();
             Reference storageRef = FirebaseStorage.instance.ref().child('events/${event.id}/$fileName');
             UploadTask uploadTask = storageRef.putFile(file);
             TaskSnapshot snapshot = await uploadTask;

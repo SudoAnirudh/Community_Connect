@@ -49,7 +49,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           // Tell authProvider we're good now. But since we just saved the user,
           // we can just navigate to home.
           ref.read(authProvider.notifier).completeOnboarding();
-          context.go('/home');
+          context.go('/join-family');
         }
       }
     } catch (e) {

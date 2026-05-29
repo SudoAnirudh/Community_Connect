@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/repositories/user_repository.dart';
 
-enum AuthState { initial, loading, otpSent, authenticated, needsOnboarding, error }
+enum AuthState { initial, loading, otpSent, authenticated, needsOnboarding, needsFamily, error }
 
 class AuthStateData {
   final AuthState status;
@@ -53,6 +53,8 @@ class AuthNotifier extends Notifier<AuthStateData> {
         final userModel = await _userRepo.getUser(user.uid);
         if (userModel == null) {
           state = state.copyWith(status: AuthState.needsOnboarding);
+        } else if (userModel.familyId == null || userModel.familyId!.isEmpty) {
+          state = state.copyWith(status: AuthState.needsFamily);
         } else {
           state = state.copyWith(status: AuthState.authenticated);
         }
@@ -162,6 +164,10 @@ class AuthNotifier extends Notifier<AuthStateData> {
   }
 
   void completeOnboarding() {
+    state = state.copyWith(status: AuthState.needsFamily);
+  }
+
+  void completeFamilyJoin() {
     state = state.copyWith(status: AuthState.authenticated);
   }
 

@@ -6,6 +6,7 @@ import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/otp_screen.dart';
 import '../../features/auth/screens/onboarding_screen.dart';
+import '../../features/auth/screens/join_family_screen.dart';
 import '../../features/community/screens/community_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/invitations/screens/create_event_screen.dart';
@@ -36,8 +37,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggingIn = state.matchedLocation == '/login' || state.matchedLocation == '/otp';
       
       if (authState.status == AuthState.authenticated) {
-        if (isLoggingIn || state.matchedLocation == '/onboarding') {
+        if (isLoggingIn || state.matchedLocation == '/onboarding' || state.matchedLocation == '/join-family') {
           return '/home';
+        }
+      } else if (authState.status == AuthState.needsFamily) {
+        if (state.matchedLocation != '/join-family') {
+          return '/join-family';
         }
       } else if (authState.status == AuthState.needsOnboarding) {
         if (state.matchedLocation != '/onboarding') {
@@ -62,6 +67,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/join-family',
+        builder: (context, state) => const JoinFamilyScreen(),
       ),
       GoRoute(
         path: '/create-event',
