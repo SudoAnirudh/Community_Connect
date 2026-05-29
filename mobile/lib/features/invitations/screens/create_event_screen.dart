@@ -70,6 +70,33 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     if (location != null) {
       setState(() {
         _selectedLocation = location;
+        _venueController.text = "Location Selected (${location.latitude.toStringAsFixed(2)}, ${location.longitude.toStringAsFixed(2)})";
+      });
+    }
+  }
+
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      setState(() {
+        _dateController.text = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+      });
+    }
+  }
+
+  Future<void> _selectTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked != null && mounted) {
+      setState(() {
+        _timeController.text = picked.format(context);
       });
     }
   }
@@ -175,6 +202,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 Expanded(
                   child: TextFormField(
                     controller: _dateController,
+                    readOnly: true,
+                    onTap: _selectDate,
                     decoration: const InputDecoration(
                       labelText: 'Date',
                       hintText: 'YYYY-MM-DD',
@@ -187,6 +216,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 Expanded(
                   child: TextFormField(
                     controller: _timeController,
+                    readOnly: true,
+                    onTap: _selectTime,
                     decoration: const InputDecoration(
                       labelText: 'Time',
                       hintText: '10:00 AM',

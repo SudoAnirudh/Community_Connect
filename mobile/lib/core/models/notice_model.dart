@@ -38,7 +38,9 @@ class NoticeModel {
       icon: map['icon'] ?? 'info',
       colorHex: map['colorHex'] ?? '#000000',
       createdAt: map['createdAt'] != null 
-          ? DateTime.parse(map['createdAt']) 
+          ? (map['createdAt'].runtimeType.toString() == 'Timestamp' 
+              ? map['createdAt'].toDate() 
+              : DateTime.tryParse(map['createdAt'].toString()) ?? DateTime.now())
           : DateTime.now(),
       priority: map['priority'] ?? 'Medium',
     );

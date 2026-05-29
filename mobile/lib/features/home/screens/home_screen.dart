@@ -97,7 +97,9 @@ class HomeScreen extends StatelessWidget {
               title: 'Create\nInvitation',
               icon: PhosphorIconsRegular.envelopeSimpleOpen,
               iconColor: AppColors.primaryGreen,
-              onTap: () {},
+              onTap: () {
+                context.push('/create-event');
+              },
             ),
             QuickActionCard(
               title: 'View\nNotices',
@@ -111,13 +113,17 @@ class HomeScreen extends StatelessWidget {
               title: 'Upcoming\nEvents',
               icon: PhosphorIconsRegular.calendarStar,
               iconColor: AppColors.warning,
-              onTap: () {},
+              onTap: () {
+                context.push('/invitations');
+              },
             ),
             QuickActionCard(
               title: 'Community\nAlerts',
               icon: PhosphorIconsRegular.warningCircle,
               iconColor: AppColors.error,
-              onTap: () {},
+              onTap: () {
+                context.go('/notices');
+              },
             ),
           ],
         ),
