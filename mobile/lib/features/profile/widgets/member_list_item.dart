@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../shared/widgets/modern_card.dart';
 import '../../../../core/models/user_model.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 class MemberListItem extends StatelessWidget {
   final UserModel member;

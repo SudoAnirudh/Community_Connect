@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import 'package:add_2_calendar/add_2_calendar.dart';
 import '../../../../shared/widgets/modern_card.dart';
 import '../../../../core/theme/app_colors.dart';
