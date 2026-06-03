@@ -71,3 +71,9 @@ firestore-debug.log
 # =========================
 coverage/
 *.log
+
+# System and Tools
+analyze_output.txt
+.agents/
+.qodo/
+skills-lock.json

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { supabase } from '../supabase';
 import { EyeSlash, CheckCircle, Warning, MagnifyingGlass } from '@phosphor-icons/react';
 
 const ReportsDashboard = () => {
@@ -8,38 +7,66 @@ const ReportsDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    // Listen to reports collection
-    const q = query(collection(db, 'reports'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data: any[] = [];
-      snapshot.forEach((doc) => {
-        data.push({ id: doc.id, ...doc.data() });
-      });
-      setReports(data);
-      setLoading(false);
-    }, (error) => {
+  const fetchReports = async () => {
+    const { data, error } = await supabase
+      .from('reports')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
       console.error("Error fetching reports:", error);
       setLoading(false);
-    });
+      return;
+    }
+    setReports(
+      data.map(rep => ({
+        id: rep.id,
+        contentType: rep.content_type,
+        contentId: rep.content_id,
+        reason: rep.reason,
+        reportedBy: rep.reported_by,
+        status: rep.status,
+        actionTaken: rep.action_taken,
+        created_at: rep.created_at
+      }))
+    );
+    setLoading(false);
+  };
 
-    return () => unsubscribe();
+  useEffect(() => {
+    fetchReports();
+
+    const channel = supabase
+      .channel('reports-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reports' }, () => {
+        fetchReports();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleHideContent = async (reportId: string, contentId: string, contentType: string) => {
     if (window.confirm("Hide this content? It will no longer be visible to regular users.")) {
       try {
         // Mark report as resolved
-        await updateDoc(doc(db, 'reports', reportId), {
-          status: 'resolved',
-          actionTaken: 'hidden'
-        });
+        const { error: repErr } = await supabase
+          .from('reports')
+          .update({
+            status: 'resolved',
+            action_taken: 'hidden'
+          })
+          .eq('id', reportId);
+        if (repErr) throw repErr;
         
         // Hide the actual content based on its type
         if (contentType && contentId) {
-           await updateDoc(doc(db, contentType, contentId), {
-             hidden: true
-           });
+          const { error: contentErr } = await supabase
+            .from(contentType)
+            .update({ hidden: true })
+            .eq('id', contentId);
+          if (contentErr) throw contentErr;
         }
       } catch (e) {
         console.error("Error hiding content:", e);
@@ -51,10 +78,14 @@ const ReportsDashboard = () => {
   const handleDismissReport = async (reportId: string) => {
     if (window.confirm("Dismiss this report? The content will remain visible.")) {
       try {
-        await updateDoc(doc(db, 'reports', reportId), {
-          status: 'dismissed',
-          actionTaken: 'none'
-        });
+        const { error } = await supabase
+          .from('reports')
+          .update({
+            status: 'dismissed',
+            action_taken: 'none'
+          })
+          .eq('id', reportId);
+        if (error) throw error;
       } catch (e) {
         console.error("Error dismissing report:", e);
         alert("Failed to dismiss report.");
@@ -131,7 +162,7 @@ const ReportsDashboard = () => {
                       </span>
                     </td>
                     <td style={{ padding: '16px 24px', color: 'var(--text-muted)' }}>
-                      {rep.createdAt?.toDate ? rep.createdAt.toDate().toLocaleDateString() : 'Unknown'}
+                      {rep.created_at ? new Date(rep.created_at).toLocaleDateString() : 'Unknown'}
                     </td>
                     <td style={{ padding: '16px 24px' }}>
                       {rep.status === 'pending' || !rep.status ? (

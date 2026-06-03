@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../models/event_model.dart';
@@ -21,6 +21,7 @@ final eventCreationProvider = AsyncNotifierProvider<EventCreationNotifier, void>
 
 class EventCreationNotifier extends AsyncNotifier<void> {
   late EventRepository _repository;
+  final SupabaseClient _supabase = Supabase.instance.client;
 
   @override
   FutureOr<void> build() {
@@ -33,16 +34,19 @@ class EventCreationNotifier extends AsyncNotifier<void> {
       List<String> uploadedUrls = [];
       const uuid = Uuid();
       
-      // Upload any local attachments to Firebase Storage
+      // Upload any local attachments to Supabase Storage
       for (String path in event.attachments) {
         if (!path.startsWith('http')) {
           File file = File(path);
           if (await file.exists()) {
             String fileName = uuid.v4();
-            Reference storageRef = FirebaseStorage.instance.ref().child('events/${event.id}/$fileName');
-            UploadTask uploadTask = storageRef.putFile(file);
-            TaskSnapshot snapshot = await uploadTask;
-            String downloadUrl = await snapshot.ref.getDownloadURL();
+            String pathInBucket = '${event.id}/$fileName';
+            
+            // Upload file to 'events' bucket
+            await _supabase.storage.from('events').upload(pathInBucket, file);
+            
+            // Get public download URL
+            String downloadUrl = _supabase.storage.from('events').getPublicUrl(pathInBucket);
             uploadedUrls.add(downloadUrl);
           }
         } else {

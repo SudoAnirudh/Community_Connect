@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
+import { supabase } from '../supabase';
 import { Users, Buildings, ShieldWarning, ArrowRight } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 
@@ -12,26 +11,22 @@ const OverviewDashboard = () => {
   useEffect(() => {
     const fetchOverviewData = async () => {
       try {
-        const [usersSnap, familiesSnap, reportsSnap, recentUsersSnap] = await Promise.all([
-          getDocs(collection(db, 'users')),
-          getDocs(collection(db, 'families')),
-          getDocs(query(collection(db, 'reports'), orderBy('createdAt', 'desc'))),
-          getDocs(query(collection(db, 'users'), orderBy('createdAt', 'desc'), limit(5)))
+        const [usersRes, familiesRes, reportsRes, recentUsersRes] = await Promise.all([
+          supabase.from('users').select('*', { count: 'exact', head: true }),
+          supabase.from('families').select('*', { count: 'exact', head: true }),
+          supabase.from('reports').select('*').eq('status', 'pending'),
+          supabase.from('users').select('*').order('created_at', { ascending: false }).limit(5)
         ]);
 
-        const pendingReports = reportsSnap.docs.filter(doc => doc.data().status === 'pending').length;
-
         setStats({
-          users: usersSnap.size,
-          families: familiesSnap.size,
-          pendingReports
+          users: usersRes.count || 0,
+          families: familiesRes.count || 0,
+          pendingReports: reportsRes.data?.length || 0
         });
 
-        const usersList: any[] = [];
-        recentUsersSnap.forEach((doc) => {
-          usersList.push({ id: doc.id, ...doc.data() });
-        });
-        setRecentUsers(usersList);
+        if (recentUsersRes.data) {
+          setRecentUsers(recentUsersRes.data.map(u => ({ id: u.uid, ...u })));
+        }
 
       } catch (error) {
         console.error("Error fetching overview data:", error);
@@ -132,7 +127,7 @@ const OverviewDashboard = () => {
                         </span>
                       </td>
                       <td style={{ padding: '16px 24px', color: 'var(--text-muted)' }}>
-                        {user.createdAt?.toDate ? user.createdAt.toDate().toLocaleDateString() : 'Just now'}
+                        {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Just now'}
                       </td>
                     </tr>
                   ))

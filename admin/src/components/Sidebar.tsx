@@ -11,12 +11,11 @@ import {
   SignOut,
   ShieldCheck
 } from '@phosphor-icons/react';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase';
+import { supabase } from '../supabase';
 
 const Sidebar = () => {
   const handleLogout = () => {
-    signOut(auth);
+    supabase.auth.signOut();
   };
 
   return (

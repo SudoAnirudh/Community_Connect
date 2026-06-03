@@ -1,22 +1,50 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
 
 class UserRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final SupabaseClient _supabase = Supabase.instance.client;
 
   Future<void> createUser(UserModel user) async {
-    await _firestore.collection('users').doc(user.uid).set(user.toMap());
+    await _supabase.from('users').upsert({
+      'uid': user.uid,
+      'phone': user.phone,
+      'name': user.name,
+      'family_id': user.familyId,
+      'role': user.role,
+      'fcm_token': user.fcmToken,
+      'created_at': user.createdAt.toIso8601String(),
+    });
   }
 
   Future<UserModel?> getUser(String uid) async {
-    final doc = await _firestore.collection('users').doc(uid).get();
-    if (doc.exists && doc.data() != null) {
-      return UserModel.fromMap(doc.data()!, doc.id);
+    final response = await _supabase
+        .from('users')
+        .select()
+        .eq('uid', uid)
+        .maybeSingle();
+    if (response != null) {
+      return UserModel(
+        uid: response['uid'],
+        phone: response['phone'] ?? '',
+        name: response['name'] ?? '',
+        familyId: response['family_id'],
+        role: response['role'] ?? 'member',
+        fcmToken: response['fcm_token'],
+        createdAt: response['created_at'] != null
+            ? DateTime.parse(response['created_at'])
+            : DateTime.now(),
+      );
     }
     return null;
   }
 
   Future<void> updateUser(UserModel user) async {
-    await _firestore.collection('users').doc(user.uid).update(user.toMap());
+    await _supabase.from('users').update({
+      'phone': user.phone,
+      'name': user.name,
+      'family_id': user.familyId,
+      'role': user.role,
+      'fcm_token': user.fcmToken,
+    }).eq('uid', user.uid);
   }
 }

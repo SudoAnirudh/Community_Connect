@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { supabase } from '../supabase';
 import { MagnifyingGlass, Funnel, Trash, ShieldSlash, CheckCircle, XCircle } from '@phosphor-icons/react';
 
 const UsersDashboard = () => {
@@ -9,26 +8,52 @@ const UsersDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
 
-  useEffect(() => {
-    const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data: any[] = [];
-      snapshot.forEach((doc) => {
-        data.push({ id: doc.id, ...doc.data() });
-      });
-      setUsers(data);
-      setLoading(false);
-    });
+  const fetchUsers = async () => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.error("Error fetching users:", error);
+      return;
+    }
+    setUsers(
+      data.map(u => ({
+        id: u.uid,
+        name: u.name,
+        phone: u.phone,
+        role: u.role,
+        familyId: u.family_id,
+        suspended: u.suspended,
+        created_at: u.created_at
+      }))
+    );
+    setLoading(false);
+  };
 
-    return () => unsubscribe();
+  useEffect(() => {
+    fetchUsers();
+
+    const channel = supabase
+      .channel('users-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
+        fetchUsers();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleSuspend = async (userId: string, currentStatus: boolean) => {
     if (window.confirm(`Are you sure you want to ${currentStatus ? 'un-suspend' : 'suspend'} this user?`)) {
       try {
-        await updateDoc(doc(db, 'users', userId), {
-          suspended: !currentStatus
-        });
+        const { error } = await supabase
+          .from('users')
+          .update({ suspended: !currentStatus })
+          .eq('uid', userId);
+        if (error) throw error;
       } catch (e) {
         console.error("Error suspending user:", e);
         alert("Failed to update user status.");
@@ -39,7 +64,11 @@ const UsersDashboard = () => {
   const handleDelete = async (userId: string) => {
     if (window.confirm("Are you sure you want to PERMANENTLY delete this user? This cannot be undone.")) {
       try {
-        await deleteDoc(doc(db, 'users', userId));
+        const { error } = await supabase
+          .from('users')
+          .delete()
+          .eq('uid', userId);
+        if (error) throw error;
       } catch (e) {
         console.error("Error deleting user:", e);
         alert("Failed to delete user.");

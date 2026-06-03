@@ -1,29 +1,23 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/messaging_service.dart';
 import 'core/widgets/offline_banner_wrapper.dart';
-import 'firebase_options.dart';
+import 'core/config/supabase_config.dart';
 
 void main() async {
-  // Ensure Flutter bindings are initialized before Firebase
+  // Ensure Flutter bindings are initialized before Supabase
   WidgetsFlutterBinding.ensureInitialized();
   
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  
-  // Enable Firestore offline persistence
-  FirebaseFirestore.instance.settings = const Settings(
-    persistenceEnabled: true,
-    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  await Supabase.initialize(
+    url: SupabaseConfig.url,
+    anonKey: SupabaseConfig.anonKey,
   );
 
-  // Initialize Firebase Messaging
+  // Initialize Messaging
   final messagingService = MessagingService();
   await messagingService.init();
   

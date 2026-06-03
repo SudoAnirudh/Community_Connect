@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
+import { supabase } from '../supabase';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { Users, Buildings, Megaphone, Warning } from '@phosphor-icons/react';
 
@@ -35,20 +34,18 @@ const AnalyticsDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Note: For large collections, use getCountFromServer(). 
-        // Using getDocs() for simplicity in this MVP implementation.
         const [usersSnap, familiesSnap, noticesSnap, reportsSnap] = await Promise.all([
-          getDocs(collection(db, 'users')),
-          getDocs(collection(db, 'families')),
-          getDocs(collection(db, 'notices')),
-          getDocs(collection(db, 'reports'))
+          supabase.from('users').select('*', { count: 'exact', head: true }),
+          supabase.from('families').select('*', { count: 'exact', head: true }),
+          supabase.from('notices').select('*', { count: 'exact', head: true }),
+          supabase.from('reports').select('*', { count: 'exact', head: true })
         ]);
 
         setStats({
-          users: usersSnap.size,
-          families: familiesSnap.size,
-          notices: noticesSnap.size,
-          reports: reportsSnap.size
+          users: usersSnap.count || 0,
+          families: familiesSnap.count || 0,
+          notices: noticesSnap.count || 0,
+          reports: reportsSnap.count || 0
         });
       } catch (error) {
         console.error("Error fetching analytics stats:", error);

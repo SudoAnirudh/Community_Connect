@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
-import { db } from './firebase';
+import { supabase } from './supabase';
 import { PaperPlaneRight, Megaphone, CircleNotch } from '@phosphor-icons/react';
 
 const ICONS = ['info', 'warning', 'check', 'calendar', 'megaphone', 'drop'];
@@ -18,18 +17,42 @@ const NoticesDashboard = () => {
   const [selectedColor, setSelectedColor] = useState('#3b82f6');
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    const q = query(collection(db, 'notices'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data: any[] = [];
-      snapshot.forEach((doc) => {
-        data.push({ id: doc.id, ...doc.data() });
-      });
-      setNotices(data);
-      setLoading(false);
-    });
+  const fetchNotices = async () => {
+    const { data, error } = await supabase
+      .from('notices')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.error("Error fetching notices:", error);
+      return;
+    }
+    setNotices(
+      data.map(n => ({
+        id: n.id,
+        title: n.title,
+        description: n.description,
+        priority: n.priority,
+        icon: n.icon,
+        colorHex: n.color_hex,
+        created_at: n.created_at,
+      }))
+    );
+    setLoading(false);
+  };
 
-    return () => unsubscribe();
+  useEffect(() => {
+    fetchNotices();
+
+    const channel = supabase
+      .channel('notices-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notices' }, () => {
+        fetchNotices();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,14 +61,15 @@ const NoticesDashboard = () => {
 
     setSubmitting(true);
     try {
-      await addDoc(collection(db, 'notices'), {
+      const { error } = await supabase.from('notices').insert({
+        id: crypto.randomUUID(),
         title,
         description,
         priority,
         icon: selectedIcon,
-        colorHex: selectedColor,
-        createdAt: serverTimestamp(),
+        color_hex: selectedColor,
       });
+      if (error) throw error;
       
       setTitle('');
       setDescription('');

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, query, onSnapshot, doc, updateDoc } from 'firebase/firestore';
-import { db } from './firebase';
+import { supabase } from './supabase';
 import { Check, X, CircleNotch } from '@phosphor-icons/react';
 
 interface Family {
@@ -16,23 +15,45 @@ const FamiliesDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, 'families'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const familyData: Family[] = [];
-      snapshot.forEach((doc) => {
-        familyData.push({ id: doc.id, ...doc.data() } as Family);
-      });
-      setFamilies(familyData);
+    const fetchFamilies = async () => {
+      const { data, error } = await supabase.from('families').select('*');
+      if (error) {
+        console.error("Error fetching families:", error);
+        return;
+      }
+      setFamilies(
+        data.map(f => ({
+          id: f.id,
+          name: f.name,
+          houseName: f.house_name,
+          wardNumber: f.ward_number,
+          verificationStatus: f.verification_status,
+        }))
+      );
       setLoading(false);
-    });
+    };
 
-    return () => unsubscribe();
+    fetchFamilies();
+
+    const channel = supabase
+      .channel('families-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'families' }, () => {
+        fetchFamilies();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleUpdateStatus = async (id: string, status: 'approved' | 'rejected') => {
     try {
-      const familyRef = doc(db, 'families', id);
-      await updateDoc(familyRef, { verificationStatus: status });
+      const { error } = await supabase
+        .from('families')
+        .update({ verification_status: status })
+        .eq('id', id);
+      if (error) throw error;
     } catch (error) {
       console.error("Error updating status: ", error);
       alert("Failed to update status.");

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from './firebase';
+import { supabase } from './supabase';
 import { ShieldCheck } from '@phosphor-icons/react';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,7 +16,11 @@ export default function Login() {
     setLoading(true);
     
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const { error: err } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (err) throw err;
       navigate('/families');
     } catch (err: any) {
       setError(err.message || 'Failed to login');

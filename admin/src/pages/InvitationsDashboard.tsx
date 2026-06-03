@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { supabase } from '../supabase';
 import { Trash, EnvelopeSimple, MagnifyingGlass } from '@phosphor-icons/react';
 
 const InvitationsDashboard = () => {
@@ -8,29 +7,51 @@ const InvitationsDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    // Assuming invitations collection exists and has createdAt
-    const q = query(collection(db, 'invitations'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data: any[] = [];
-      snapshot.forEach((doc) => {
-        data.push({ id: doc.id, ...doc.data() });
-      });
-      setInvitations(data);
-      setLoading(false);
-    }, (error) => {
+  const fetchInvitations = async () => {
+    const { data, error } = await supabase
+      .from('invitations')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
       console.error("Error fetching invitations:", error);
-      // Fallback if index is missing or collection is empty
       setLoading(false);
-    });
+      return;
+    }
+    setInvitations(
+      data.map(inv => ({
+        id: inv.id,
+        code: inv.code,
+        familyId: inv.family_id,
+        used: inv.used,
+        created_at: inv.created_at
+      }))
+    );
+    setLoading(false);
+  };
 
-    return () => unsubscribe();
+  useEffect(() => {
+    fetchInvitations();
+
+    const channel = supabase
+      .channel('invitations-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'invitations' }, () => {
+        fetchInvitations();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleDelete = async (invitationId: string) => {
     if (window.confirm("Are you sure you want to delete this invitation?")) {
       try {
-        await deleteDoc(doc(db, 'invitations', invitationId));
+        const { error } = await supabase
+          .from('invitations')
+          .delete()
+          .eq('id', invitationId);
+        if (error) throw error;
       } catch (e) {
         console.error("Error deleting invitation:", e);
         alert("Failed to delete invitation.");
@@ -101,7 +122,7 @@ const InvitationsDashboard = () => {
                       </span>
                     </td>
                     <td style={{ padding: '16px 24px', color: 'var(--text-muted)' }}>
-                      {inv.createdAt?.toDate ? inv.createdAt.toDate().toLocaleDateString() : 'Unknown'}
+                      {inv.created_at ? new Date(inv.created_at).toLocaleDateString() : 'Unknown'}
                     </td>
                     <td style={{ padding: '16px 24px' }}>
                       <button 

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { onAuthStateChanged } from 'firebase/auth';
-import type { User } from 'firebase/auth';
-import { auth } from './firebase';
+import { supabase } from './supabase';
+import type { User } from '@supabase/supabase-js';
 
 import './index.css';
 import Layout from './components/Layout';
@@ -21,11 +20,17 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
       setLoading(false);
     });
-    return () => unsubscribe();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   if (loading) {

@@ -1,0 +1,60 @@
+name: Flutter Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Release Android App
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: |
+          cd mobile
+          flutter pub get
+
+      - name: Run Tests
+        run: |
+          cd mobile
+          # Uncomment if you have tests defined
+          # flutter test
+
+      - name: Build APK
+        run: |
+          cd mobile
+          flutter build apk --release
+
+      - name: Build App Bundle (AAB)
+        run: |
+          cd mobile
+          flutter build appbundle --release
+
+      - name: Create Draft Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: |
+            mobile/build/app/outputs/flutter-apk/app-release.apk
+            mobile/build/app/outputs/bundle/release/app-release.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
