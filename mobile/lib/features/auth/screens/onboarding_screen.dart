@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/models/user_model.dart';
 import '../../../../core/repositories/user_repository.dart';
@@ -32,12 +32,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
     try {
       final authData = ref.read(authProvider);
-      final user = Supabase.instance.client.auth.currentUser;
+      final user = FirebaseAuth.instance.currentUser;
       
       if (user != null) {
         final newUser = UserModel(
-          uid: user.id,
-          phone: authData.phoneNumber ?? user.phone ?? '',
+          uid: user.uid,
+          phone: authData.phoneNumber ?? user.phoneNumber ?? '',
           name: name,
           createdAt: DateTime.now(),
         );

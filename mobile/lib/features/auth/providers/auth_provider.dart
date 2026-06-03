@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/repositories/user_repository.dart';
@@ -33,13 +34,14 @@ class AuthStateData {
 }
 
 class AuthNotifier extends Notifier<AuthStateData> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final SupabaseClient _supabase = Supabase.instance.client;
   final UserRepository _userRepo = UserRepository();
 
   @override
   AuthStateData build() {
     // Check if the user is already signed in on app start
-    if (_supabase.auth.currentUser != null) {
+    if (_auth.currentUser != null) {
       Future.microtask(() => _checkUserExists());
       return const AuthStateData(status: AuthState.loading);
     }
@@ -47,10 +49,10 @@ class AuthNotifier extends Notifier<AuthStateData> {
   }
 
   Future<void> _checkUserExists() async {
-    final user = _supabase.auth.currentUser;
+    final user = _auth.currentUser;
     if (user != null) {
       try {
-        final userModel = await _userRepo.getUser(user.id);
+        final userModel = await _userRepo.getUser(user.uid);
         if (userModel == null) {
           state = state.copyWith(status: AuthState.needsOnboarding);
         } else if (userModel.familyId == null || userModel.familyId!.isEmpty) {
@@ -71,12 +73,37 @@ class AuthNotifier extends Notifier<AuthStateData> {
     state = state.copyWith(status: AuthState.loading, errorMessage: null);
 
     try {
-      await _supabase.auth.signInWithOtp(
-        phone: phoneNumber,
-      );
-      state = state.copyWith(
-        status: AuthState.otpSent,
+      await _auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          try {
+            await _auth.signInWithCredential(credential);
+            await _checkUserExists();
+          } catch (e) {
+            state = state.copyWith(
+              status: AuthState.error,
+              errorMessage: 'Failed to auto-authenticate: ${e.toString()}',
+            );
+          }
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          state = state.copyWith(
+            status: AuthState.error,
+            errorMessage: e.message ?? 'Verification failed. Please try again.',
+          );
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          state = state.copyWith(
+            status: AuthState.otpSent,
+            phoneNumber: phoneNumber,
+            verificationId: verificationId,
+          );
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          if (state.status != AuthState.authenticated) {
+            state = state.copyWith(verificationId: verificationId);
+          }
+        },
       );
     } catch (e) {
       state = state.copyWith(
@@ -87,7 +114,7 @@ class AuthNotifier extends Notifier<AuthStateData> {
   }
 
   Future<bool> verifyOtp(String otp) async {
-    if (state.phoneNumber == null) {
+    if (state.verificationId == null) {
       state = state.copyWith(
         status: AuthState.error,
         errorMessage: 'Verification session expired. Please request a new OTP.',
@@ -98,17 +125,17 @@ class AuthNotifier extends Notifier<AuthStateData> {
     state = state.copyWith(status: AuthState.loading, errorMessage: null);
 
     try {
-      await _supabase.auth.verifyOTP(
-        phone: state.phoneNumber!,
-        token: otp,
-        type: OtpType.sms,
+      final credential = PhoneAuthProvider.credential(
+        verificationId: state.verificationId!,
+        smsCode: otp,
       );
+      await _auth.signInWithCredential(credential);
       await _checkUserExists();
       return true;
-    } on AuthException catch (e) {
+    } on FirebaseAuthException catch (e) {
       state = state.copyWith(
         status: AuthState.error,
-        errorMessage: e.message,
+        errorMessage: e.message ?? 'Invalid OTP. Please try again.',
       );
       // Reset to otpSent state after showing error so they can try again
       await Future.delayed(const Duration(seconds: 2));
@@ -126,6 +153,7 @@ class AuthNotifier extends Notifier<AuthStateData> {
   }
 
   Future<void> signOut() async {
+    await _auth.signOut();
     await _supabase.auth.signOut();
     reset();
   }

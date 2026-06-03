@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/family_model.dart';
 import '../models/user_model.dart';
 import '../repositories/family_repository.dart';
@@ -14,11 +15,11 @@ final userRepositoryProvider = Provider<UserRepository>((ref) {
 });
 
 final currentUserModelProvider = FutureProvider<UserModel?>((ref) async {
-  final user = Supabase.instance.client.auth.currentUser;
+  final user = FirebaseAuth.instance.currentUser;
   if (user == null) return null;
   
   final repo = ref.watch(userRepositoryProvider);
-  return repo.getUser(user.id);
+  return repo.getUser(user.uid);
 });
 
 final currentFamilyProvider = StreamProvider<FamilyModel?>((ref) async* {
