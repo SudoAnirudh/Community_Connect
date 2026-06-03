@@ -65,6 +65,8 @@ mobile/ios/Pods/
 firebase-debug.log
 firebase-debug.log.*
 firestore-debug.log
+*adminsdk*.json
+serviceAccountKey.json
 
 # =========================
 # Misc
