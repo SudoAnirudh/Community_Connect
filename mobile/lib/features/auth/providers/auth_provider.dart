@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import '../../../../core/repositories/user_repository.dart';
 
 enum AuthState { initial, loading, otpSent, authenticated, needsOnboarding, needsFamily, error }
@@ -52,7 +53,14 @@ class AuthNotifier extends Notifier<AuthStateData> {
     final user = _auth.currentUser;
     if (user != null) {
       try {
+        debugPrint('DEBUG: Force refreshing Firebase ID token to get latest custom claims...');
+        final token = await user.getIdToken(true);
+        debugPrint('DEBUG: Firebase ID token retrieved successfully: ${token != null && token.length > 15 ? token.substring(0, 15) : token}...');
+        
+        debugPrint('DEBUG: Querying Supabase user table for uid: ${user.uid}');
         final userModel = await _userRepo.getUser(user.uid);
+        debugPrint('DEBUG: User query result: $userModel');
+        
         if (userModel == null) {
           state = state.copyWith(status: AuthState.needsOnboarding);
         } else if (userModel.familyId == null || userModel.familyId!.isEmpty) {
@@ -60,7 +68,9 @@ class AuthNotifier extends Notifier<AuthStateData> {
         } else {
           state = state.copyWith(status: AuthState.authenticated);
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
+        debugPrint('DEBUG: Error in _checkUserExists: $e');
+        debugPrint('DEBUG: StackTrace: $stackTrace');
         state = state.copyWith(
           status: AuthState.error,
           errorMessage: 'Failed to fetch user data: ${e.toString()}',
