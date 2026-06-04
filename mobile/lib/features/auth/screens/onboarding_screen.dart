@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../../../core/models/user_model.dart';
 import '../../../../core/repositories/user_repository.dart';
@@ -35,10 +36,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       final user = FirebaseAuth.instance.currentUser;
       
       if (user != null) {
+        String? fcmToken;
+        try {
+          fcmToken = await FirebaseMessaging.instance.getToken();
+        } catch (e) {
+          debugPrint('FCM: Failed to get token on onboarding: $e');
+        }
+
         final newUser = UserModel(
           uid: user.uid,
           phone: authData.phoneNumber ?? user.phoneNumber ?? '',
           name: name,
+          fcmToken: fcmToken,
           createdAt: DateTime.now(),
         );
 
