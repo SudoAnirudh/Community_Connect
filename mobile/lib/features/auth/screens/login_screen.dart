@@ -123,6 +123,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           isLoading: isLoading,
                           onPressed: _handleSendOtp,
                         ).animate().fade(delay: 500.ms, duration: 600.ms).scale(begin: const Offset(0.95, 0.95), curve: Curves.easeOutQuad),
+                        const SizedBox(height: 16),
+                        Center(
+                          child: TextButton(
+                            onPressed: isLoading ? null : () {
+                              ref.read(authProvider.notifier).signInAnonymously();
+                            },
+                            child: const Text('Or Sign In Anonymously (For Testing)'),
+                          ),
+                        ).animate().fade(delay: 600.ms, duration: 600.ms),
                       ],
                     ),
                   ),
