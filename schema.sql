@@ -148,7 +148,13 @@ create policy "Users can read all profiles" on users
 
 drop policy if exists "Users can update their own profile" on users;
 create policy "Users can update their own profile" on users
-  for update using (uid = public.auth_uid_text());
+  for update using (
+    uid = public.auth_uid_text() or
+    exists (
+      select 1 from users u
+      where u.uid = public.auth_uid_text() and u.role = 'admin'
+    )
+  );
 
 -- 2. Families Table Policies
 drop policy if exists "Anyone can create a family" on families;
@@ -163,7 +169,11 @@ drop policy if exists "Family admin or members can update family" on families;
 create policy "Family admin or members can update family" on families
   for update using (
     admin_uid = public.auth_uid_text() or 
-    public.auth_uid_text() = any(member_uids)
+    public.auth_uid_text() = any(member_uids) or
+    exists (
+      select 1 from users u
+      where u.uid = public.auth_uid_text() and u.role = 'admin'
+    )
   );
 
 -- 3. Join Requests Policies
