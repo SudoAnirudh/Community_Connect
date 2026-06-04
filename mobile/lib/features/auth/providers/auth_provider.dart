@@ -162,6 +162,19 @@ class AuthNotifier extends Notifier<AuthStateData> {
     }
   }
 
+  Future<void> signInAnonymously() async {
+    state = state.copyWith(status: AuthState.loading, errorMessage: null);
+    try {
+      await _auth.signInAnonymously();
+      await _checkUserExists();
+    } catch (e) {
+      state = state.copyWith(
+        status: AuthState.error,
+        errorMessage: 'Failed to sign in anonymously: ${e.toString()}',
+      );
+    }
+  }
+
   Future<void> signOut() async {
     await _auth.signOut();
     await _supabase.auth.signOut();
