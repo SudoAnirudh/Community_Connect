@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { supabase } from './supabase';
 import { Check, X, CircleNotch } from '@phosphor-icons/react';
 
@@ -60,6 +60,9 @@ const FamiliesDashboard = () => {
     }
   };
 
+  const pending = useMemo(() => families.filter(f => f.verificationStatus === 'pending'), [families]);
+  const others = useMemo(() => families.filter(f => f.verificationStatus !== 'pending'), [families]);
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
@@ -67,9 +70,6 @@ const FamiliesDashboard = () => {
       </div>
     );
   }
-
-  const pending = families.filter(f => f.verificationStatus === 'pending');
-  const others = families.filter(f => f.verificationStatus !== 'pending');
 
   return (
     <div>

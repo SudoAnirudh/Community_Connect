@@ -1,0 +1,3 @@
+## 2024-06-05 - Admin Dashboard Array Filtering
+**Learning:** Found an `O(n)` string allocation and toLowerCase call happening inside a `.filter` block on every render loop across multiple admin dashboards (`UsersDashboard.tsx`, `ReportsDashboard.tsx`, `InvitationsDashboard.tsx`).
+**Action:** When filtering lists using user input on every keystroke, always hoist operations like `.toLowerCase()` outside the loop and wrap the final filtered list using `useMemo` so that filtering doesn't re-run during un-related renders. Ensure `useMemo` handles early `return` components by being placed at the top level to adhere to Rules of Hooks.
