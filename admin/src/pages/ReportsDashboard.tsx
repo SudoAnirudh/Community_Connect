@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabase';
 import { EyeSlash, CheckCircle, Warning, MagnifyingGlass } from '@phosphor-icons/react';
 
@@ -93,10 +93,14 @@ const ReportsDashboard = () => {
     }
   };
 
-  const filteredReports = reports.filter(rep => 
-    rep.reason?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    rep.reportedBy?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // ⚡ Bolt: Memoize filtered reports and hoist toLowerCase to prevent O(N) string conversions
+  const filteredReports = useMemo(() => {
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return reports.filter(rep =>
+      rep.reason?.toLowerCase().includes(lowerSearchTerm) ||
+      rep.reportedBy?.toLowerCase().includes(lowerSearchTerm)
+    );
+  }, [reports, searchTerm]);
 
   return (
     <div>

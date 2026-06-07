@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabase';
 import { Trash, EnvelopeSimple, MagnifyingGlass } from '@phosphor-icons/react';
 
@@ -59,10 +59,14 @@ const InvitationsDashboard = () => {
     }
   };
 
-  const filteredInvitations = invitations.filter(inv => 
-    inv.code?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    inv.familyId?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // ⚡ Bolt: Memoize filtered invitations and hoist toLowerCase to prevent O(N) string conversions
+  const filteredInvitations = useMemo(() => {
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return invitations.filter(inv =>
+      inv.code?.toLowerCase().includes(lowerSearchTerm) ||
+      inv.familyId?.toLowerCase().includes(lowerSearchTerm)
+    );
+  }, [invitations, searchTerm]);
 
   return (
     <div>
