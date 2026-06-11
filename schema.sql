@@ -140,7 +140,11 @@ alter table reports enable row level security;
 -- 1. Users Table Policies
 drop policy if exists "Users can insert their own profile" on users;
 create policy "Users can insert their own profile" on users
-  for insert with check (uid = public.auth_uid_text());
+  for insert with check (
+    uid = public.auth_uid_text() and
+    role = 'member' and
+    suspended = false
+  );
 
 drop policy if exists "Users can read all profiles" on users;
 create policy "Users can read all profiles" on users
@@ -150,6 +154,17 @@ drop policy if exists "Users can update their own profile" on users;
 create policy "Users can update their own profile" on users
   for update using (
     uid = public.auth_uid_text() or
+    exists (
+      select 1 from users u
+      where u.uid = public.auth_uid_text() and u.role = 'admin'
+    )
+  )
+  with check (
+    (
+      uid = public.auth_uid_text() and
+      role = (select role from users where uid = public.auth_uid_text()) and
+      suspended = (select suspended from users where uid = public.auth_uid_text())
+    ) or
     exists (
       select 1 from users u
       where u.uid = public.auth_uid_text() and u.role = 'admin'
