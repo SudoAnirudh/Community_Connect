@@ -137,10 +137,55 @@ alter table reports enable row level security;
 -- RLS Policies
 -- ==========================================
 
+-- ==========================================
+-- Triggers for Security
+-- ==========================================
+
+-- Trigger function to prevent regular users from escalating their privileges or un-suspending themselves
+create or replace function public.prevent_user_privilege_escalation()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  is_admin boolean;
+  user_uid text;
+begin
+  user_uid := public.auth_uid_text();
+
+  -- Bypass for backend services/superusers
+  if user_uid is null or current_user = 'postgres' or current_role = 'service_role' then
+    return NEW;
+  end if;
+
+  -- Check if the user performing the update is an admin
+  select role = 'admin' into is_admin from users where uid = user_uid;
+
+  -- If not an admin, revert any changes to role and suspended
+  if not coalesce(is_admin, false) then
+    NEW.role := OLD.role;
+    NEW.suspended := OLD.suspended;
+  end if;
+
+  return NEW;
+end;
+$$;
+
+drop trigger if exists enforce_user_privilege_escalation on users;
+create trigger enforce_user_privilege_escalation
+  before update on users
+  for each row
+  execute function public.prevent_user_privilege_escalation();
+
 -- 1. Users Table Policies
 drop policy if exists "Users can insert their own profile" on users;
 create policy "Users can insert their own profile" on users
-  for insert with check (uid = public.auth_uid_text());
+  for insert with check (
+    uid = public.auth_uid_text() and
+    role = 'member' and
+    suspended = false
+  );
 
 drop policy if exists "Users can read all profiles" on users;
 create policy "Users can read all profiles" on users
