@@ -3,7 +3,13 @@ import { supabase } from './supabase';
 import { PaperPlaneRight, Megaphone, CircleNotch } from '@phosphor-icons/react';
 
 const ICONS = ['info', 'warning', 'check', 'calendar', 'megaphone', 'drop'];
-const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
+const COLORS = [
+  { hex: '#3b82f6', name: 'Blue' },
+  { hex: '#ef4444', name: 'Red' },
+  { hex: '#10b981', name: 'Green' },
+  { hex: '#f59e0b', name: 'Orange' },
+  { hex: '#8b5cf6', name: 'Purple' }
+];
 
 const NoticesDashboard = () => {
   const [notices, setNotices] = useState<any[]>([]);
@@ -138,13 +144,16 @@ const NoticesDashboard = () => {
               <div style={{ display: 'flex', gap: '8px' }}>
                 {COLORS.map(c => (
                   <button
-                    key={c}
+                    key={c.hex}
                     type="button"
-                    onClick={() => setSelectedColor(c)}
+                    onClick={() => setSelectedColor(c.hex)}
+                    aria-label={`Select ${c.name} theme color`}
+                    title={`Select ${c.name} theme color`}
+                    aria-pressed={selectedColor === c.hex}
                     style={{
                       width: '32px', height: '32px', borderRadius: '50%', border: 'none',
-                      backgroundColor: c, cursor: 'pointer',
-                      boxShadow: selectedColor === c ? `0 0 0 2px white, 0 0 0 4px ${c}` : 'none'
+                      backgroundColor: c.hex, cursor: 'pointer',
+                      boxShadow: selectedColor === c.hex ? `0 0 0 2px white, 0 0 0 4px ${c.hex}` : 'none'
                     }}
                   />
                 ))}
