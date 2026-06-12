@@ -174,7 +174,11 @@ create policy "Users can update their own profile" on users
 -- 2. Families Table Policies
 drop policy if exists "Anyone can create a family" on families;
 create policy "Anyone can create a family" on families
-  for insert with check (public.auth_uid_text() is not null);
+  for insert with check (
+    public.auth_uid_text() is not null and
+    admin_uid = public.auth_uid_text() and
+    verification_status = 'pending'
+  );
 
 drop policy if exists "Anyone can read families" on families;
 create policy "Anyone can read families" on families
@@ -194,7 +198,10 @@ create policy "Family admin or members can update family" on families
 -- 3. Join Requests Policies
 drop policy if exists "Users can create their own join requests" on join_requests;
 create policy "Users can create their own join requests" on join_requests
-  for insert with check (user_id = public.auth_uid_text());
+  for insert with check (
+    user_id = public.auth_uid_text() and
+    status = 'pending'
+  );
 
 drop policy if exists "Users can read join requests they created" on join_requests;
 create policy "Users can read join requests they created" on join_requests
@@ -210,6 +217,16 @@ drop policy if exists "Users and family admins can update join requests" on join
 create policy "Users and family admins can update join requests" on join_requests
   for update using (
     user_id = public.auth_uid_text() or
+    exists (
+      select 1 from families f
+      where f.id = join_requests.family_id and f.admin_uid = public.auth_uid_text()
+    )
+  )
+  with check (
+    (
+      user_id = public.auth_uid_text() and
+      (status = 'pending' or status = (select status from join_requests jr where jr.id = join_requests.id))
+    ) or
     exists (
       select 1 from families f
       where f.id = join_requests.family_id and f.admin_uid = public.auth_uid_text()
@@ -237,7 +254,10 @@ create policy "Anyone can read events" on events
 
 drop policy if exists "Authenticated users can insert events" on events;
 create policy "Authenticated users can insert events" on events
-  for insert with check (public.auth_uid_text() is not null);
+  for insert with check (
+    public.auth_uid_text() is not null and
+    created_by = public.auth_uid_text()
+  );
 
 drop policy if exists "Event creator can update/delete events" on events;
 create policy "Event creator can update/delete events" on events
@@ -269,7 +289,11 @@ create policy "Family admin can delete invitations" on invitations
 -- 7. Reports Policies
 drop policy if exists "Authenticated users can create reports" on reports;
 create policy "Authenticated users can create reports" on reports
-  for insert with check (reported_by = public.auth_uid_text());
+  for insert with check (
+    reported_by = public.auth_uid_text() and
+    status = 'pending' and
+    action_taken = 'none'
+  );
 
 drop policy if exists "Only admins can read/modify reports" on reports;
 create policy "Only admins can read/modify reports" on reports
