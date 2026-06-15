@@ -158,18 +158,39 @@ create policy "Users can update their own profile" on users
       select 1 from users u
       where u.uid = public.auth_uid_text() and u.role = 'admin'
     )
-  )
-  with check (
-    (
-      uid = public.auth_uid_text() and
-      role = (select role from users where uid = public.auth_uid_text()) and
-      suspended = (select suspended from users where uid = public.auth_uid_text())
-    ) or
-    exists (
-      select 1 from users u
-      where u.uid = public.auth_uid_text() and u.role = 'admin'
-    )
   );
+
+-- Trigger to protect user privileges
+create or replace function public.protect_user_privileges()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  -- Allow internal backend services to bypass
+  -- We check current_setting('role', true) to bypass for service_role and postgres
+  if coalesce(current_setting('role', true), '') in ('service_role', 'postgres') then
+    return new;
+  end if;
+
+  -- Only check if the values actually changed
+  if (old.role is distinct from new.role) or (old.suspended is distinct from new.suspended) then
+    -- Check if the current user is an admin
+    if not exists (select 1 from users where uid = public.auth_uid_text() and role = 'admin') then
+      raise exception 'Unauthorized: Only admins can modify role or suspended status';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists ensure_user_privileges on users;
+create trigger ensure_user_privileges
+  before update on users
+  for each row
+  execute function public.protect_user_privileges();
 
 -- 2. Families Table Policies
 drop policy if exists "Anyone can create a family" on families;
