@@ -1,0 +1,3 @@
+## 2024-05-15 - Custom Color Picker Accessibility
+**Learning:** Custom UI elements that use colors as values (like a color picker) are completely opaque to screen readers if implemented purely as colored blocks without text or labels. Even if they are focusable buttons, without `aria-label` or `title`, a screen reader user just hears "button".
+**Action:** When creating custom visual pickers (like color themes), map the visual values (e.g. hex codes) to human-readable names and apply them to the interactive elements using `aria-label` and `title`, along with `aria-pressed` for the selected state.
