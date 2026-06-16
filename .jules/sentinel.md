@@ -7,3 +7,7 @@
 **Vulnerability:** IDOR (Insecure Direct Object Reference) / Impersonation. The RLS `INSERT` policies for `events` and `families` tables only checked if the user was authenticated. They failed to verify that the user was setting themselves as the creator/admin, allowing any authenticated user to create an event or family appearing to be owned by another user.
 **Learning:** Checking for mere authentication (`public.auth_uid_text() is not null`) is insufficient for `INSERT` policies if the table records ownership or authorship. Attackers can provide arbitrary values for `created_by` or `admin_uid` fields.
 **Prevention:** Always strictly enforce ID matching on `INSERT` policies using `WITH CHECK` clauses (e.g., `created_by = public.auth_uid_text()`) to ensure users can only create records that belong to them.
+## 2024-06-16 - Securing Supabase Webhook Endpoint
+**Vulnerability:** The `supabase/functions/send-notification/index.ts` webhook function lacked authentication, allowing unauthenticated POST requests to trigger push notifications.
+**Learning:** Supabase Edge Functions must be manually secured if they are meant to act as webhooks, as they do not inherit database RLS policies. The `WEBHOOK_SECRET` environment variable was assumed but not enforced.
+**Prevention:** Always validate a secure token (like `WEBHOOK_SECRET` via Bearer token) on external-facing endpoints and fail securely (e.g., 500 if unconfigured, 401 if invalid).

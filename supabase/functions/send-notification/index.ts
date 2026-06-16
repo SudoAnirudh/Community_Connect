@@ -8,6 +8,18 @@ serve(async (req) => {
     return new Response("Method Not Allowed", { status: 405 });
   }
 
+  // Enforce authentication via WEBHOOK_SECRET
+  const webhookSecret = Deno.env.get("WEBHOOK_SECRET");
+  if (!webhookSecret) {
+    console.error("WEBHOOK_SECRET is not configured in Supabase env.");
+    return new Response("Server Configuration Error", { status: 500 });
+  }
+
+  const authHeader = req.headers.get("Authorization");
+  if (authHeader !== `Bearer ${webhookSecret}`) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   try {
     const payload = await req.json();
 
