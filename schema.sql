@@ -176,7 +176,8 @@ drop policy if exists "Anyone can create a family" on families;
 create policy "Anyone can create a family" on families
   for insert with check (
     public.auth_uid_text() is not null and
-    admin_uid = public.auth_uid_text()
+    admin_uid = public.auth_uid_text() and
+    verification_status = 'pending'
   );
 
 drop policy if exists "Anyone can read families" on families;
@@ -197,7 +198,10 @@ create policy "Family admin or members can update family" on families
 -- 3. Join Requests Policies
 drop policy if exists "Users can create their own join requests" on join_requests;
 create policy "Users can create their own join requests" on join_requests
-  for insert with check (user_id = public.auth_uid_text());
+  for insert with check (
+    user_id = public.auth_uid_text() and
+    status = 'pending'
+  );
 
 drop policy if exists "Users can read join requests they created" on join_requests;
 create policy "Users can read join requests they created" on join_requests
