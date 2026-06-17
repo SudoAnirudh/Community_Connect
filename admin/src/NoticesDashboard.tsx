@@ -5,6 +5,14 @@ import { PaperPlaneRight, Megaphone, CircleNotch } from '@phosphor-icons/react';
 const ICONS = ['info', 'warning', 'check', 'calendar', 'megaphone', 'drop'];
 const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
 
+const COLOR_NAMES: Record<string, string> = {
+  '#3b82f6': 'Blue',
+  '#ef4444': 'Red',
+  '#10b981': 'Green',
+  '#f59e0b': 'Yellow',
+  '#8b5cf6': 'Purple'
+};
+
 const NoticesDashboard = () => {
   const [notices, setNotices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -141,6 +149,9 @@ const NoticesDashboard = () => {
                     key={c}
                     type="button"
                     onClick={() => setSelectedColor(c)}
+                    aria-label={`Select ${COLOR_NAMES[c] || 'color'} theme`}
+                    title={COLOR_NAMES[c] || 'Color'}
+                    aria-pressed={selectedColor === c}
                     style={{
                       width: '32px', height: '32px', borderRadius: '50%', border: 'none',
                       backgroundColor: c, cursor: 'pointer',
