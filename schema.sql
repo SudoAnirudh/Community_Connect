@@ -289,3 +289,62 @@ create policy "Only admins can read/modify reports" on reports
       where u.uid = public.auth_uid_text() and u.role = 'admin'
     )
   );
+
+-- ==========================================
+-- Triggers for Security
+-- ==========================================
+
+-- Trigger to prevent unauthorized modification of families.verification_status
+CREATE OR REPLACE FUNCTION protect_families_verification_status()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.verification_status IS DISTINCT FROM OLD.verification_status THEN
+    IF coalesce(current_setting('role', true), '') IN ('service_role', 'postgres') THEN
+      RETURN NEW;
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1 FROM users u
+      WHERE u.uid = public.auth_uid_text() AND u.role = 'admin'
+    ) THEN
+      RAISE EXCEPTION 'Unauthorized: only admins can modify verification_status';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+DROP TRIGGER IF EXISTS check_families_verification_status ON families;
+CREATE TRIGGER check_families_verification_status
+BEFORE UPDATE ON families
+FOR EACH ROW
+EXECUTE FUNCTION protect_families_verification_status();
+
+-- Trigger to prevent unauthorized modification of join_requests.status
+CREATE OR REPLACE FUNCTION protect_join_requests_status()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.status IS DISTINCT FROM OLD.status THEN
+    IF coalesce(current_setting('role', true), '') IN ('service_role', 'postgres') THEN
+      RETURN NEW;
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1 FROM families f
+      WHERE f.id = NEW.family_id AND f.admin_uid = public.auth_uid_text()
+    ) AND NOT EXISTS (
+      SELECT 1 FROM users u
+      WHERE u.uid = public.auth_uid_text() AND u.role = 'admin'
+    ) THEN
+      RAISE EXCEPTION 'Unauthorized: only family admins or system admins can modify join request status';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+DROP TRIGGER IF EXISTS check_join_requests_status ON join_requests;
+CREATE TRIGGER check_join_requests_status
+BEFORE UPDATE ON join_requests
+FOR EACH ROW
+EXECUTE FUNCTION protect_join_requests_status();
