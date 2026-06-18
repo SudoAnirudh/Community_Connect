@@ -289,3 +289,68 @@ create policy "Only admins can read/modify reports" on reports
       where u.uid = public.auth_uid_text() and u.role = 'admin'
     )
   );
+
+-- ==========================================
+-- Triggers for Column Protection
+-- ==========================================
+
+create or replace function public.protect_family_verification_status()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if coalesce(current_setting('role', true), '') in ('service_role', 'postgres') then
+    return new;
+  end if;
+
+  if exists (select 1 from users where uid = public.auth_uid_text() and role = 'admin') then
+    return new;
+  end if;
+
+  if new.verification_status is distinct from old.verification_status then
+    raise exception 'You do not have permission to update verification_status';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists ensure_family_verification_status on families;
+create trigger ensure_family_verification_status
+  before update on families
+  for each row
+  execute function public.protect_family_verification_status();
+
+
+create or replace function public.protect_join_request_status()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if coalesce(current_setting('role', true), '') in ('service_role', 'postgres') then
+    return new;
+  end if;
+
+  if exists (select 1 from users where uid = public.auth_uid_text() and role = 'admin') then
+    return new;
+  end if;
+
+  if exists (select 1 from families where id = new.family_id and admin_uid = public.auth_uid_text()) then
+    return new;
+  end if;
+
+  if new.status is distinct from old.status then
+    raise exception 'You do not have permission to update status';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists ensure_join_request_status on join_requests;
+create trigger ensure_join_request_status
+  before update on join_requests
+  for each row
+  execute function public.protect_join_request_status();
