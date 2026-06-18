@@ -7,3 +7,7 @@
 **Vulnerability:** IDOR (Insecure Direct Object Reference) / Impersonation. The RLS `INSERT` policies for `events` and `families` tables only checked if the user was authenticated. They failed to verify that the user was setting themselves as the creator/admin, allowing any authenticated user to create an event or family appearing to be owned by another user.
 **Learning:** Checking for mere authentication (`public.auth_uid_text() is not null`) is insufficient for `INSERT` policies if the table records ownership or authorship. Attackers can provide arbitrary values for `created_by` or `admin_uid` fields.
 **Prevention:** Always strictly enforce ID matching on `INSERT` policies using `WITH CHECK` clauses (e.g., `created_by = public.auth_uid_text()`) to ensure users can only create records that belong to them.
+## 2024-06-18 - Prevent IDOR in Supabase RLS Updates via Triggers
+**Vulnerability:** IDOR allowing non-admins to approve `families.verification_status` and `join_requests.status`.
+**Learning:** `WITH CHECK` on `UPDATE` policies is not granular enough to prevent updates to specific sensitive columns without breaking valid row updates.
+**Prevention:** Use PostgreSQL `BEFORE UPDATE` triggers (with `SECURITY DEFINER` and `SET search_path = public`) combined with explicit role checks (`current_setting('role')`) to securely and specifically control who can update sensitive status columns.
