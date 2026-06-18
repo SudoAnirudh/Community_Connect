@@ -7,3 +7,8 @@
 **Vulnerability:** IDOR (Insecure Direct Object Reference) / Impersonation. The RLS `INSERT` policies for `events` and `families` tables only checked if the user was authenticated. They failed to verify that the user was setting themselves as the creator/admin, allowing any authenticated user to create an event or family appearing to be owned by another user.
 **Learning:** Checking for mere authentication (`public.auth_uid_text() is not null`) is insufficient for `INSERT` policies if the table records ownership or authorship. Attackers can provide arbitrary values for `created_by` or `admin_uid` fields.
 **Prevention:** Always strictly enforce ID matching on `INSERT` policies using `WITH CHECK` clauses (e.g., `created_by = public.auth_uid_text()`) to ensure users can only create records that belong to them.
+
+## 2024-08-05 - [Hardcoded Supabase Anon Key in Source]
+**Vulnerability:** A hardcoded `SUPABASE_ANON_KEY` JWT was present in `mobile/lib/core/config/supabase_config.dart`.
+**Learning:** Hardcoding API keys or JWT tokens inside client application source code (especially in source control) is a critical credential leakage risk. These keys can easily be scraped.
+**Prevention:** Always retrieve keys from environment variables using `String.fromEnvironment()` or via `.env` loader plugins to ensure secrets stay out of source control.
