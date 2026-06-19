@@ -134,6 +134,71 @@ alter table invitations enable row level security;
 alter table reports enable row level security;
 
 -- ==========================================
+-- Triggers for Status Protection (IDOR Prevention)
+-- ==========================================
+
+create or replace function protect_family_verification_status()
+returns trigger
+security definer set search_path = public
+language plpgsql
+as $$
+begin
+  -- Allow service roles and superusers
+  if coalesce(current_setting('role', true), '') in ('service_role', 'postgres') then
+    return new;
+  end if;
+
+  if old.verification_status is distinct from new.verification_status then
+    -- Only allow admin users to change verification_status
+    if not exists (select 1 from users where uid = public.auth_uid_text() and role = 'admin') then
+      raise exception 'Unauthorized to update verification_status';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists ensure_family_verification_status on families;
+create trigger ensure_family_verification_status
+  before update on families
+  for each row
+  execute function protect_family_verification_status();
+
+
+create or replace function protect_join_request_status()
+returns trigger
+security definer set search_path = public
+language plpgsql
+as $$
+begin
+  -- Allow service roles and superusers
+  if coalesce(current_setting('role', true), '') in ('service_role', 'postgres') then
+    return new;
+  end if;
+
+  if old.status is distinct from new.status then
+    -- Only allow family admin or system admins to change status
+    if not exists (
+      select 1 from families f where f.id = new.family_id and f.admin_uid = public.auth_uid_text()
+    ) and not exists (
+      select 1 from users u where u.uid = public.auth_uid_text() and u.role = 'admin'
+    ) then
+      raise exception 'Unauthorized to update join_request status';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists ensure_join_request_status on join_requests;
+create trigger ensure_join_request_status
+  before update on join_requests
+  for each row
+  execute function protect_join_request_status();
+
+-- ==========================================
 -- RLS Policies
 -- ==========================================
 
