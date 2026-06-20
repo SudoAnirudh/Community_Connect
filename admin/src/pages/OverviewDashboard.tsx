@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 
 const OverviewDashboard = () => {
   const [stats, setStats] = useState({ users: 0, families: 0, pendingReports: 0 });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [recentUsers, setRecentUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,14 +15,16 @@ const OverviewDashboard = () => {
         const [usersRes, familiesRes, reportsRes, recentUsersRes] = await Promise.all([
           supabase.from('users').select('*', { count: 'exact', head: true }),
           supabase.from('families').select('*', { count: 'exact', head: true }),
-          supabase.from('reports').select('*').eq('status', 'pending'),
-          supabase.from('users').select('*').order('created_at', { ascending: false }).limit(5)
+          // Optimization: Use count and head: true to avoid fetching full rows over network
+          supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+          // Optimization: Select only required columns instead of '*'
+          supabase.from('users').select('uid, name, phone, role, created_at').order('created_at', { ascending: false }).limit(5)
         ]);
 
         setStats({
           users: usersRes.count || 0,
           families: familiesRes.count || 0,
-          pendingReports: reportsRes.data?.length || 0
+          pendingReports: reportsRes.count || 0
         });
 
         if (recentUsersRes.data) {
