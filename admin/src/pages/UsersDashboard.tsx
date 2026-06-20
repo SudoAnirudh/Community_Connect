@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabase';
 import { MagnifyingGlass, Funnel, Trash, ShieldSlash, CheckCircle, XCircle } from '@phosphor-icons/react';
 
@@ -76,12 +76,15 @@ const UsersDashboard = () => {
     }
   };
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          user.phone?.includes(searchTerm);
-    const matchesRole = filterRole === 'all' || user.role === filterRole;
-    return matchesSearch && matchesRole;
-  });
+  const filteredUsers = useMemo(() => {
+    const lowerSearch = searchTerm.toLowerCase();
+    return users.filter(user => {
+      const matchesSearch = user.name?.toLowerCase().includes(lowerSearch) ||
+                            user.phone?.includes(searchTerm);
+      const matchesRole = filterRole === 'all' || user.role === filterRole;
+      return matchesSearch && matchesRole;
+    });
+  }, [users, searchTerm, filterRole]);
 
   return (
     <div>
