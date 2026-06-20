@@ -1,0 +1,3 @@
+## 2024-05-14 - Optimize Supabase Count Queries
+**Learning:** Fetching full rows using `select('*')` and reading the array length locally is a severe network bottleneck in this hybrid architecture when only a record count is needed. Supabase provides `{ count: 'exact', head: true }` specifically to offload this to the PostgreSQL server and return an empty body.
+**Action:** Always use `.select('*', { count: 'exact', head: true })` for record counting to save bandwidth, decrease response times, and reduce memory consumption on the client. Ensure the frontend reads the `.count` property instead of `.data?.length`.
