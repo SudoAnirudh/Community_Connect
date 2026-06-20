@@ -171,6 +171,7 @@ const UsersDashboard = () => {
                           onClick={() => handleSuspend(user.id, user.suspended || false)}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', color: user.suspended ? '#10b981' : '#f59e0b' }}
                           title={user.suspended ? 'Restore User' : 'Suspend User'}
+                          aria-label={user.suspended ? 'Restore User' : 'Suspend User'}
                         >
                           {user.suspended ? <CheckCircle size={20} /> : <ShieldSlash size={20} />}
                         </button>
@@ -178,6 +179,7 @@ const UsersDashboard = () => {
                           onClick={() => handleDelete(user.id)}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}
                           title="Delete User"
+                          aria-label="Delete User"
                         >
                           <Trash size={20} />
                         </button>
