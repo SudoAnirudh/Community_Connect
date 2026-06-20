@@ -8,6 +8,15 @@ serve(async (req) => {
     return new Response("Method Not Allowed", { status: 405 });
   }
 
+  // Verify Webhook Secret to prevent unauthorized invocations
+  const authHeader = req.headers.get("Authorization");
+  const webhookSecret = Deno.env.get("WEBHOOK_SECRET");
+
+  if (!webhookSecret || authHeader !== `Bearer ${webhookSecret}`) {
+    console.error("Unauthorized request to send-notification function.");
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   try {
     const payload = await req.json();
 

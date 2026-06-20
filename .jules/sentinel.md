@@ -12,3 +12,7 @@
 **Vulnerability:** [Insecure Direct Object Reference / Privilege Escalation allowing any user to verify families or approve join requests by updating the `verification_status` and `status` columns.]
 **Learning:** [RLS policies often only restrict WHICH rows can be updated but do not inherently restrict WHICH columns can be modified. This allowed unauthorized modifications of sensitive workflow state columns.]
 **Prevention:** [Implement `BEFORE UPDATE` triggers to explicitly check and authorize modifications to specific sensitive columns, using `security definer set search_path = public` and safely bypassing backend service roles.]
+## 2025-02-27 - Unauthenticated Supabase Webhook Endpoint
+**Vulnerability:** The `send-notification` Supabase Edge Function lacked an authentication check, allowing anyone to trigger push notifications to all users.
+**Learning:** Edge Functions acting as webhooks need manual verification of caller identity (e.g., verifying a predefined secret or webhook signature). They are public by default unless protected.
+**Prevention:** Always verify incoming webhook requests by checking the `Authorization` header against a `WEBHOOK_SECRET` environment variable or by verifying cryptographic signatures before processing payloads.
