@@ -1,0 +1,3 @@
+## 2024-05-18 - Missing ARIA Labels on Icon-Only Buttons
+**Learning:** Found a recurring pattern across dashboard components (Users, Invitations, Reports) where icon-only action buttons (e.g., delete, suspend, dismiss) relied solely on `title` attributes for context, making them inaccessible to screen readers without `aria-label`.
+**Action:** Always verify that `<button>` elements containing only icons (like Phosphor icons) include an explicit `aria-label` attribute, especially in mapping functions that render list actions.
