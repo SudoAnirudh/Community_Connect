@@ -12,3 +12,8 @@
 **Vulnerability:** [Insecure Direct Object Reference / Privilege Escalation allowing any user to verify families or approve join requests by updating the `verification_status` and `status` columns.]
 **Learning:** [RLS policies often only restrict WHICH rows can be updated but do not inherently restrict WHICH columns can be modified. This allowed unauthorized modifications of sensitive workflow state columns.]
 **Prevention:** [Implement `BEFORE UPDATE` triggers to explicitly check and authorize modifications to specific sensitive columns, using `security definer set search_path = public` and safely bypassing backend service roles.]
+
+## 2024-06-21 - [PostgreSQL RLS Privilege Escalation in INSERT Policies]
+**Vulnerability:** The RLS `INSERT` policies for `events` and `reports` tables did not restrict default status fields (`status` and `action_taken`), allowing any authenticated user to create events with arbitrary statuses (e.g., 'completed' or 'cancelled') or reports that were already marked as resolved or acted upon.
+**Learning:** Even if a PostgreSQL table defines default values for columns (e.g., `status text not null default 'upcoming'`), the Supabase PostgREST API allows clients to explicitly supply custom values during an `INSERT`. If the RLS policy does not explicitly forbid it using a `WITH CHECK` clause, users can set any value they want for those columns upon creation.
+**Prevention:** Always explicitly enforce safe default values for workflow/state columns (like `status`, `action_taken`, `role`) in RLS `INSERT` policies using `WITH CHECK` clauses (e.g., `status = 'upcoming'`) to ensure newly created records begin in a secure, expected state.
