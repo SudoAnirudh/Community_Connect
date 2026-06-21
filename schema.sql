@@ -311,7 +311,8 @@ drop policy if exists "Authenticated users can insert events" on events;
 create policy "Authenticated users can insert events" on events
   for insert with check (
     public.auth_uid_text() is not null and
-    created_by = public.auth_uid_text()
+    created_by = public.auth_uid_text() and
+    status = 'upcoming'
   );
 
 drop policy if exists "Event creator can update/delete events" on events;
@@ -344,7 +345,11 @@ create policy "Family admin can delete invitations" on invitations
 -- 7. Reports Policies
 drop policy if exists "Authenticated users can create reports" on reports;
 create policy "Authenticated users can create reports" on reports
-  for insert with check (reported_by = public.auth_uid_text());
+  for insert with check (
+    reported_by = public.auth_uid_text() and
+    status = 'pending' and
+    action_taken = 'none'
+  );
 
 drop policy if exists "Only admins can read/modify reports" on reports;
 create policy "Only admins can read/modify reports" on reports
