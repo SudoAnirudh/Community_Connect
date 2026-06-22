@@ -329,7 +329,8 @@ create policy "Family members/admin can create invitations" on invitations
     exists (
       select 1 from families f
       where f.id = invitations.family_id and (f.admin_uid = public.auth_uid_text() or public.auth_uid_text() = any(f.member_uids))
-    )
+    ) and
+    used = false
   );
 
 drop policy if exists "Family admin can delete invitations" on invitations;
@@ -344,7 +345,11 @@ create policy "Family admin can delete invitations" on invitations
 -- 7. Reports Policies
 drop policy if exists "Authenticated users can create reports" on reports;
 create policy "Authenticated users can create reports" on reports
-  for insert with check (reported_by = public.auth_uid_text());
+  for insert with check (
+    reported_by = public.auth_uid_text() and
+    status = 'pending' and
+    action_taken = 'none'
+  );
 
 drop policy if exists "Only admins can read/modify reports" on reports;
 create policy "Only admins can read/modify reports" on reports

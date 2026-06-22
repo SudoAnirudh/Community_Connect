@@ -12,3 +12,8 @@
 **Vulnerability:** [Insecure Direct Object Reference / Privilege Escalation allowing any user to verify families or approve join requests by updating the `verification_status` and `status` columns.]
 **Learning:** [RLS policies often only restrict WHICH rows can be updated but do not inherently restrict WHICH columns can be modified. This allowed unauthorized modifications of sensitive workflow state columns.]
 **Prevention:** [Implement `BEFORE UPDATE` triggers to explicitly check and authorize modifications to specific sensitive columns, using `security definer set search_path = public` and safely bypassing backend service roles.]
+
+## 2024-06-22 - [PostgreSQL RLS Mass Assignment on Workflow Columns]
+**Vulnerability:** Mass assignment in RLS `INSERT` policies for `reports` and `invitations` tables. Users could explicitly provide custom values for workflow-related columns (e.g., `status = 'resolved'`, `used = true`) during record creation, bypassing the intended database defaults.
+**Learning:** Even if a PostgreSQL table has default values defined for columns (e.g., `status default 'pending'`), the Supabase API allows users to explicitly provide custom values during an `INSERT`. If the RLS `INSERT` policy lacks a `WITH CHECK` clause enforcing the default value, attackers can manipulate initial workflow states.
+**Prevention:** Always enforce safe default values for workflow columns in RLS `INSERT` policies using `WITH CHECK` clauses (e.g., `status = 'pending'`) to prevent privilege escalation or state manipulation on initial insert.
