@@ -9,6 +9,18 @@ serve(async (req) => {
   }
 
   try {
+    // Verify webhook authentication
+    const authHeader = req.headers.get("Authorization");
+    const webhookSecret = Deno.env.get("WEBHOOK_SECRET");
+    if (!webhookSecret) {
+      console.error("WEBHOOK_SECRET is not configured");
+      return new Response("Server Configuration Error", { status: 500 });
+    }
+    if (authHeader !== `Bearer ${webhookSecret}`) {
+      console.error("Unauthorized webhook access attempt");
+      return new Response("Unauthorized", { status: 401 });
+    }
+
     const payload = await req.json();
 
     // Verify webhook payload
