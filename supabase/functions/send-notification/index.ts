@@ -8,6 +8,17 @@ serve(async (req) => {
     return new Response("Method Not Allowed", { status: 405 });
   }
 
+  // Verify Webhook Secret
+  const webhookSecret = Deno.env.get("WEBHOOK_SECRET");
+  const authHeader = req.headers.get("Authorization");
+  if (!webhookSecret) {
+    console.error("WEBHOOK_SECRET is not configured.");
+    return new Response("Internal Server Error", { status: 500 });
+  }
+  if (!authHeader || authHeader !== `Bearer ${webhookSecret}`) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   try {
     const payload = await req.json();
 

@@ -16,3 +16,7 @@
 **Vulnerability:** Supabase allows overriding default column values during record insertion unless explicit `WITH CHECK` conditions are declared.
 **Learning:** Even if a schema column has a `default` value (like `status default 'pending'`), a user interacting directly with the Supabase PostgREST API can insert a custom state (e.g. `status: 'resolved'`) successfully unless restricted.
 **Prevention:** Always strictly enforce exact workflow defaults (e.g., `status = 'pending'`, `action_taken = 'none'`, `used = false`) inside the `WITH CHECK` expression for RLS `for insert` policies on user-facing tables.
+## 2024-06-23 - Unauthenticated Webhook Edge Function
+**Vulnerability:** A Supabase Edge Function (`send-notification`) was completely unauthenticated, accepting push notification payloads from any external source.
+**Learning:** External webhook handlers in serverless architectures must inherently distrust incoming requests. Merely verifying the internal payload structure (e.g., `payload.type === 'INSERT'`) is insufficient if the connection itself isn't authenticated, leaving the function open to abuse (spamming users or racking up execution costs).
+**Prevention:** Always require an authorization header for webhook handlers and validate it against a securely stored environment variable (like `WEBHOOK_SECRET`) before processing any payloads.
