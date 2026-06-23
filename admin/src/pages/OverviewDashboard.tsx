@@ -14,14 +14,15 @@ const OverviewDashboard = () => {
         const [usersRes, familiesRes, reportsRes, recentUsersRes] = await Promise.all([
           supabase.from('users').select('*', { count: 'exact', head: true }),
           supabase.from('families').select('*', { count: 'exact', head: true }),
-          supabase.from('reports').select('*').eq('status', 'pending'),
+          // ⚡ Bolt: Using { count: 'exact', head: true } instead of fetching full rows to prevent network bottlenecks
+          supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
           supabase.from('users').select('*').order('created_at', { ascending: false }).limit(5)
         ]);
 
         setStats({
           users: usersRes.count || 0,
           families: familiesRes.count || 0,
-          pendingReports: reportsRes.data?.length || 0
+          pendingReports: reportsRes.count || 0
         });
 
         if (recentUsersRes.data) {
