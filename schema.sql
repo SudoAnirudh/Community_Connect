@@ -137,6 +137,35 @@ alter table reports enable row level security;
 -- Triggers for Status Protection (IDOR Prevention)
 -- ==========================================
 
+create or replace function protect_family_admin_uid()
+returns trigger
+security definer set search_path = public
+language plpgsql
+as $$
+begin
+  -- Allow service roles and superusers
+  if coalesce(current_setting('role', true), '') in ('service_role', 'postgres') then
+    return new;
+  end if;
+
+  if old.admin_uid is distinct from new.admin_uid then
+    -- Only allow the current admin or system admins to change the family admin
+    if old.admin_uid is distinct from public.auth_uid_text() and not exists (select 1 from users where uid = public.auth_uid_text() and role = 'admin') then
+      raise exception 'Unauthorized to update family admin_uid';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists ensure_family_admin_uid on families;
+create trigger ensure_family_admin_uid
+  before update on families
+  for each row
+  execute function protect_family_admin_uid();
+
+
 create or replace function protect_family_verification_status()
 returns trigger
 security definer set search_path = public

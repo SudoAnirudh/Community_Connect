@@ -16,3 +16,8 @@
 **Vulnerability:** Supabase allows overriding default column values during record insertion unless explicit `WITH CHECK` conditions are declared.
 **Learning:** Even if a schema column has a `default` value (like `status default 'pending'`), a user interacting directly with the Supabase PostgREST API can insert a custom state (e.g. `status: 'resolved'`) successfully unless restricted.
 **Prevention:** Always strictly enforce exact workflow defaults (e.g., `status = 'pending'`, `action_taken = 'none'`, `used = false`) inside the `WITH CHECK` expression for RLS `for insert` policies on user-facing tables.
+
+## 2023-10-31 - Null Check in Security Triggers
+**Vulnerability:** A `!=` operator was used in a security trigger (`if old.admin_uid != public.auth_uid_text()`).
+**Learning:** In PostgreSQL, if either operand is `NULL`, the `!=` operator returns `NULL` rather than a boolean. In an `IF` statement, `NULL` is treated as falsy, meaning the exception block would be skipped and an unauthorized update allowed. This causes a "fail-open" scenario.
+**Prevention:** Always use `IS DISTINCT FROM` instead of `!=` or `<>` in PL/pgSQL security conditions to properly handle `NULL` values and ensure the logic "fails closed".
