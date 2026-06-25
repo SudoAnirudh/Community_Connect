@@ -16,3 +16,8 @@
 **Vulnerability:** Supabase allows overriding default column values during record insertion unless explicit `WITH CHECK` conditions are declared.
 **Learning:** Even if a schema column has a `default` value (like `status default 'pending'`), a user interacting directly with the Supabase PostgREST API can insert a custom state (e.g. `status: 'resolved'`) successfully unless restricted.
 **Prevention:** Always strictly enforce exact workflow defaults (e.g., `status = 'pending'`, `action_taken = 'none'`, `used = false`) inside the `WITH CHECK` expression for RLS `for insert` policies on user-facing tables.
+
+## 2024-06-25 - Missing Default Value Enforcement in RLS INSERT Policies
+**Vulnerability:** The `events` table defined a default value for the `status` column (`default 'upcoming'`). However, the RLS `INSERT` policy ("Authenticated users can insert events") lacked a `WITH CHECK` condition to enforce this default. This allowed a malicious user to craft an API request that explicitly sets `status` to an unauthorized value (e.g., 'approved' or 'canceled') during row creation, bypassing the intended workflow state.
+**Learning:** Supabase PostgreSQL table default values only apply when the client omits the column in the `INSERT` payload. If the client explicitly provides a value, the default is ignored. RLS policies must defensively enforce these workflow constraints.
+**Prevention:** Always enforce safe default values for workflow-critical columns in RLS `INSERT` policies using `WITH CHECK` clauses (e.g., `status = 'upcoming'`) to prevent privilege escalation via mass-assignment during creation.
