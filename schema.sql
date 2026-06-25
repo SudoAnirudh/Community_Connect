@@ -159,6 +159,37 @@ begin
 end;
 $$;
 
+-- Trigger to protect admin_uid
+create or replace function protect_family_admin_uid()
+returns trigger
+security definer set search_path = public
+language plpgsql
+as $$
+begin
+  -- Allow service roles and superusers
+  if coalesce(current_setting('role', true), '') in ('service_role', 'postgres') then
+    return new;
+  end if;
+
+  if old.admin_uid is distinct from new.admin_uid then
+    -- Only allow current admin or system admins to change admin_uid
+    if old.admin_uid is distinct from public.auth_uid_text() and not exists (
+      select 1 from users u where u.uid = public.auth_uid_text() and u.role = 'admin'
+    ) then
+      raise exception 'Unauthorized to update admin_uid';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists ensure_family_admin_uid on families;
+create trigger ensure_family_admin_uid
+  before update on families
+  for each row
+  execute function protect_family_admin_uid();
+
 drop trigger if exists ensure_family_verification_status on families;
 create trigger ensure_family_verification_status
   before update on families
