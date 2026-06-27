@@ -21,3 +21,7 @@
 **Vulnerability:** Privilege escalation in the `families` table where regular members could update the `admin_uid` to themselves. The RLS `UPDATE` policy allows members to modify the row, but didn't restrict which columns they could modify.
 **Learning:** Using `WITH CHECK` clauses in RLS `UPDATE` policies to prevent mass-assignment on specific columns (like `admin_uid` or `status`) is problematic because it can inadvertently restrict all other valid row updates or cause infinite recursion if self-referencing.
 **Prevention:** To prevent mass-assignment/privilege escalation on specific columns during PostgreSQL updates, use `BEFORE UPDATE` triggers (with `security definer` and `set search_path = public`) that raise an exception if unauthorized modification of restricted columns is attempted, explicitly allowing backend services via `service_role`.
+## 2024-05-24 - Enforce Event Status on Insert
+**Vulnerability:** Privilege escalation via custom status injection during event creation (e.g., users could potentially insert events with unauthorized statuses).
+**Learning:** Even if a workflow column (like `status`) has a default value (e.g., `default 'upcoming'`), Supabase/PostgreSQL APIs allow users to provide explicit values during `INSERT`. Without a `WITH CHECK` constraint, malicious users can bypass intended workflow states.
+**Prevention:** Always enforce safe default values for workflow columns in RLS `INSERT` policies using `WITH CHECK` clauses.
