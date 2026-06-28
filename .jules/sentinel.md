@@ -21,3 +21,11 @@
 **Vulnerability:** Privilege escalation in the `families` table where regular members could update the `admin_uid` to themselves. The RLS `UPDATE` policy allows members to modify the row, but didn't restrict which columns they could modify.
 **Learning:** Using `WITH CHECK` clauses in RLS `UPDATE` policies to prevent mass-assignment on specific columns (like `admin_uid` or `status`) is problematic because it can inadvertently restrict all other valid row updates or cause infinite recursion if self-referencing.
 **Prevention:** To prevent mass-assignment/privilege escalation on specific columns during PostgreSQL updates, use `BEFORE UPDATE` triggers (with `security definer` and `set search_path = public`) that raise an exception if unauthorized modification of restricted columns is attempted, explicitly allowing backend services via `service_role`.
+## 2024-07-26 - [Hardcoded API Key]
+**Vulnerability:** Google Maps API key was hardcoded in AndroidManifest.xml.
+**Learning:** Hardcoding API keys exposes them to reverse engineering and potential misuse.
+**Prevention:** Externalize API keys using secure configuration mechanisms like local.properties for Android.
+## 2024-07-26 - [Infinite Recursion in RLS Policy]
+**Vulnerability:** A self-referencing subquery inside the `WITH CHECK` clause of an RLS `UPDATE` policy caused infinite recursion.
+**Learning:** In Supabase/PostgreSQL, you cannot use `select column from table where uid = public.auth_uid_text()` inside the `WITH CHECK` clause for the same table to enforce column immutability because it triggers the same RLS policy recursively when evaluating the check.
+**Prevention:** Remove self-referencing `WITH CHECK` clauses in RLS `UPDATE` policies and rely entirely on `BEFORE UPDATE` triggers to protect specific columns from unauthorized modification (mass-assignment).

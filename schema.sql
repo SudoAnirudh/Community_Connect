@@ -197,6 +197,34 @@ create trigger ensure_family_verification_status
   execute function protect_family_verification_status();
 
 
+create or replace function protect_user_role_and_status()
+returns trigger
+security definer set search_path = public
+language plpgsql
+as $$
+begin
+  -- Allow service roles and superusers
+  if coalesce(current_setting('role', true), '') in ('service_role', 'postgres') then
+    return new;
+  end if;
+
+  if old.role is distinct from new.role or old.suspended is distinct from new.suspended then
+    if not exists (select 1 from users u where u.uid = public.auth_uid_text() and u.role = 'admin') then
+      raise exception 'Unauthorized to update user role or suspended status';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists ensure_user_role_and_status on users;
+create trigger ensure_user_role_and_status
+  before update on users
+  for each row
+  execute function protect_user_role_and_status();
+
+
 create or replace function protect_join_request_status()
 returns trigger
 security definer set search_path = public
@@ -250,17 +278,6 @@ drop policy if exists "Users can update their own profile" on users;
 create policy "Users can update their own profile" on users
   for update using (
     uid = public.auth_uid_text() or
-    exists (
-      select 1 from users u
-      where u.uid = public.auth_uid_text() and u.role = 'admin'
-    )
-  )
-  with check (
-    (
-      uid = public.auth_uid_text() and
-      role = (select role from users where uid = public.auth_uid_text()) and
-      suspended = (select suspended from users where uid = public.auth_uid_text())
-    ) or
     exists (
       select 1 from users u
       where u.uid = public.auth_uid_text() and u.role = 'admin'
