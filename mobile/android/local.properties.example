@@ -1,0 +1,4 @@
+# Google Maps API Key
+# Replace the value below with your actual API key and rename this file to local.properties
+# The actual local.properties file should NOT be checked into version control.
+MAPS_API_KEY=your_api_key_here
