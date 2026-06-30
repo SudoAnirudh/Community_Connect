@@ -21,3 +21,7 @@
 **Vulnerability:** Privilege escalation in the `families` table where regular members could update the `admin_uid` to themselves. The RLS `UPDATE` policy allows members to modify the row, but didn't restrict which columns they could modify.
 **Learning:** Using `WITH CHECK` clauses in RLS `UPDATE` policies to prevent mass-assignment on specific columns (like `admin_uid` or `status`) is problematic because it can inadvertently restrict all other valid row updates or cause infinite recursion if self-referencing.
 **Prevention:** To prevent mass-assignment/privilege escalation on specific columns during PostgreSQL updates, use `BEFORE UPDATE` triggers (with `security definer` and `set search_path = public`) that raise an exception if unauthorized modification of restricted columns is attempted, explicitly allowing backend services via `service_role`.
+## 2024-06-30 - Fix mass-assignment vulnerability and recursion in users UPDATE policy
+**Vulnerability:** The users table RLS UPDATE policy used a self-referencing WITH CHECK subquery to prevent privilege escalation on `role` and `suspended` columns, which incorrectly restricted valid updates and caused infinite recursion.
+**Learning:** Hardcoding values or using subqueries in WITH CHECK clauses for RLS UPDATE policies is an anti-pattern. It breaks non-related column updates and can cause infinite recursion in PostgreSQL.
+**Prevention:** Use BEFORE UPDATE triggers with explicit column value comparison (old.col IS DISTINCT FROM new.col) to securely prevent mass-assignment/IDOR without breaking RLS.
