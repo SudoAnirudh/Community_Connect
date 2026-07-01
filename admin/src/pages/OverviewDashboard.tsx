@@ -12,16 +12,18 @@ const OverviewDashboard = () => {
     const fetchOverviewData = async () => {
       try {
         const [usersRes, familiesRes, reportsRes, recentUsersRes] = await Promise.all([
+          // ⚡ Bolt Optimization: Use { count: 'exact', head: true } to calculate total server-side
+          // without downloading all report rows over the network, significantly reducing payload size.
           supabase.from('users').select('*', { count: 'exact', head: true }),
           supabase.from('families').select('*', { count: 'exact', head: true }),
-          supabase.from('reports').select('*').eq('status', 'pending'),
+          supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
           supabase.from('users').select('*').order('created_at', { ascending: false }).limit(5)
         ]);
 
         setStats({
           users: usersRes.count || 0,
           families: familiesRes.count || 0,
-          pendingReports: reportsRes.data?.length || 0
+          pendingReports: reportsRes.count || 0
         });
 
         if (recentUsersRes.data) {
