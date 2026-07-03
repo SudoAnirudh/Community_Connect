@@ -97,8 +97,11 @@ const NoticesDashboard = () => {
           </h2>
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Title</label>
+              <label htmlFor="notice-title" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
+                Title <span aria-hidden="true" style={{ color: 'var(--danger)' }}>*</span>
+              </label>
               <input 
+                id="notice-title"
                 className="input" 
                 value={title} 
                 onChange={e => setTitle(e.target.value)} 
@@ -107,8 +110,11 @@ const NoticesDashboard = () => {
               />
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Description</label>
+              <label htmlFor="notice-description" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
+                Description <span aria-hidden="true" style={{ color: 'var(--danger)' }}>*</span>
+              </label>
               <textarea 
+                id="notice-description"
                 className="input" 
                 value={description} 
                 onChange={e => setDescription(e.target.value)} 
@@ -119,27 +125,30 @@ const NoticesDashboard = () => {
             </div>
             <div style={{ display: 'flex', gap: '16px' }}>
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Priority</label>
-                <select className="input" value={priority} onChange={e => setPriority(e.target.value)}>
+                <label htmlFor="notice-priority" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Priority</label>
+                <select id="notice-priority" className="input" value={priority} onChange={e => setPriority(e.target.value)}>
                   <option value="high">High</option>
                   <option value="medium">Medium</option>
                   <option value="low">Low</option>
                 </select>
               </div>
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Icon</label>
-                <select className="input" value={selectedIcon} onChange={e => setSelectedIcon(e.target.value)}>
+                <label htmlFor="notice-icon" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Icon</label>
+                <select id="notice-icon" className="input" value={selectedIcon} onChange={e => setSelectedIcon(e.target.value)}>
                   {ICONS.map(i => <option key={i} value={i}>{i}</option>)}
                 </select>
               </div>
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Theme Color</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <label id="theme-color-label" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Theme Color</label>
+              <div role="group" aria-labelledby="theme-color-label" style={{ display: 'flex', gap: '8px' }}>
                 {COLORS.map(c => (
                   <button
                     key={c}
                     type="button"
+                    aria-label={`Select color ${c}`}
+                    title={`Select color ${c}`}
+                    aria-pressed={selectedColor === c}
                     onClick={() => setSelectedColor(c)}
                     style={{
                       width: '32px', height: '32px', borderRadius: '50%', border: 'none',
