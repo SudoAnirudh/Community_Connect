@@ -146,6 +146,7 @@ const NoticesDashboard = () => {
                       backgroundColor: c, cursor: 'pointer',
                       boxShadow: selectedColor === c ? `0 0 0 2px white, 0 0 0 4px ${c}` : 'none'
                     }}
+                    aria-label={`Select theme color ${c}`}
                   />
                 ))}
               </div>
