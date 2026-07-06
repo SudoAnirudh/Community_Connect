@@ -25,3 +25,8 @@
 **Vulnerability:** The `users` table RLS update policy used a self-referencing subquery in the `WITH CHECK` clause to prevent updates to `role` and `suspended` columns, which causes infinite recursion and restricts valid row updates.
 **Learning:** RLS `WITH CHECK` clauses shouldn't be used to hardcode values for mass-assignment prevention. Self-referencing subqueries in `UPDATE` policies can cause infinite recursion.
 **Prevention:** Use `BEFORE UPDATE` triggers (e.g., `ensure_user_role_and_status`) to restrict modifications on sensitive workflow columns, and omit `WITH CHECK` if it only duplicates the `USING` clause.
+
+## 2024-05-18 - RLS Array Injection in Membership Columns
+**Vulnerability:** Arbitrary user IDs could be injected into the `member_uids` array during family creation because the RLS `INSERT` policy didn't restrict the array contents.
+**Learning:** PostgreSQL RLS `WITH CHECK` policies must explicitly restrict not just scalar fields (like admin_uid or status) but also array-based membership columns to prevent mass-assignment/injection attacks.
+**Prevention:** Always ensure `WITH CHECK` clauses explicitly set the expected initial state for arrays (e.g., `member_uids = array[public.auth_uid_text()]`).
