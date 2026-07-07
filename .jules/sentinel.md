@@ -25,3 +25,8 @@
 **Vulnerability:** The `users` table RLS update policy used a self-referencing subquery in the `WITH CHECK` clause to prevent updates to `role` and `suspended` columns, which causes infinite recursion and restricts valid row updates.
 **Learning:** RLS `WITH CHECK` clauses shouldn't be used to hardcode values for mass-assignment prevention. Self-referencing subqueries in `UPDATE` policies can cause infinite recursion.
 **Prevention:** Use `BEFORE UPDATE` triggers (e.g., `ensure_user_role_and_status`) to restrict modifications on sensitive workflow columns, and omit `WITH CHECK` if it only duplicates the `USING` clause.
+
+## 2026-07-07 - [Array-Based Membership Injection in RLS INSERT Policies]
+**Vulnerability:** Mass assignment allowing an attacker to inject arbitrary user UIDs into an array column (like `member_uids`) during record insertion.
+**Learning:** Supabase allows overriding default column values. If an array column controls membership or access, omitting it from the `WITH CHECK` clause allows creators to force arbitrary users into the membership array.
+**Prevention:** Always explicitly restrict the initial array contents to the creator in the `WITH CHECK` clause (e.g., `member_uids = array[public.auth_uid_text()]`) for user-facing tables.
