@@ -295,6 +295,7 @@ create policy "Anyone can create a family" on families
   for insert with check (
     public.auth_uid_text() is not null and
     admin_uid = public.auth_uid_text() and
+    member_uids = array[public.auth_uid_text()] and
     verification_status = 'pending'
   );
 
