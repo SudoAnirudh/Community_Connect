@@ -25,3 +25,7 @@
 **Vulnerability:** The `users` table RLS update policy used a self-referencing subquery in the `WITH CHECK` clause to prevent updates to `role` and `suspended` columns, which causes infinite recursion and restricts valid row updates.
 **Learning:** RLS `WITH CHECK` clauses shouldn't be used to hardcode values for mass-assignment prevention. Self-referencing subqueries in `UPDATE` policies can cause infinite recursion.
 **Prevention:** Use `BEFORE UPDATE` triggers (e.g., `ensure_user_role_and_status`) to restrict modifications on sensitive workflow columns, and omit `WITH CHECK` if it only duplicates the `USING` clause.
+## 2024-07-08 - Restrict array-based membership columns on INSERT
+**Vulnerability:** Arbitrary user injection in array-based membership columns (like `member_uids` in `families`) during record creation.
+**Learning:** Even if the client sends safe initial values, the RLS policy must explicitly enforce that the array only contains the creator's UID using a `WITH CHECK` clause.
+**Prevention:** Always use `member_uids = array[public.auth_uid_text()]` or similar in `WITH CHECK` clauses for RLS `INSERT` policies when dealing with array-based membership columns.
