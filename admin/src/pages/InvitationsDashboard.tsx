@@ -129,6 +129,7 @@ const InvitationsDashboard = () => {
                         onClick={() => handleDelete(inv.id)}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}
                         title="Delete Invitation"
+                        aria-label="Delete Invitation"
                       >
                         <Trash size={20} />
                       </button>
