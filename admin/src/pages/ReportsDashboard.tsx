@@ -171,6 +171,7 @@ const ReportsDashboard = () => {
                             onClick={() => handleHideContent(rep.id, rep.contentId, rep.contentType)}
                             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}
                             title="Hide Content"
+                            aria-label="Hide Content"
                           >
                             <EyeSlash size={20} />
                           </button>
@@ -178,6 +179,7 @@ const ReportsDashboard = () => {
                             onClick={() => handleDismissReport(rep.id)}
                             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#10b981' }}
                             title="Dismiss Report"
+                            aria-label="Dismiss Report"
                           >
                             <CheckCircle size={20} />
                           </button>
