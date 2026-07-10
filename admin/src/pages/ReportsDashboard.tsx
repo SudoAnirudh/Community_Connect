@@ -168,6 +168,7 @@ const ReportsDashboard = () => {
                       {rep.status === 'pending' || !rep.status ? (
                         <div style={{ display: 'flex', gap: '8px' }}>
                           <button 
+                            aria-label="Hide Content"
                             onClick={() => handleHideContent(rep.id, rep.contentId, rep.contentType)}
                             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}
                             title="Hide Content"
@@ -175,6 +176,7 @@ const ReportsDashboard = () => {
                             <EyeSlash size={20} />
                           </button>
                           <button 
+                            aria-label="Dismiss Report"
                             onClick={() => handleDismissReport(rep.id)}
                             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#10b981' }}
                             title="Dismiss Report"

@@ -126,6 +126,7 @@ const InvitationsDashboard = () => {
                     </td>
                     <td style={{ padding: '16px 24px' }}>
                       <button 
+                        aria-label="Delete Invitation"
                         onClick={() => handleDelete(inv.id)}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}
                         title="Delete Invitation"
