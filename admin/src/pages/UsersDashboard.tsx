@@ -168,6 +168,7 @@ const UsersDashboard = () => {
                     <td style={{ padding: '16px 24px' }}>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button 
+                          aria-label={user.suspended ? 'Restore User' : 'Suspend User'}
                           onClick={() => handleSuspend(user.id, user.suspended || false)}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', color: user.suspended ? '#10b981' : '#f59e0b' }}
                           title={user.suspended ? 'Restore User' : 'Suspend User'}
@@ -175,6 +176,7 @@ const UsersDashboard = () => {
                           {user.suspended ? <CheckCircle size={20} /> : <ShieldSlash size={20} />}
                         </button>
                         <button 
+                          aria-label="Delete User"
                           onClick={() => handleDelete(user.id)}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}
                           title="Delete User"
