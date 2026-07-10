@@ -25,3 +25,7 @@
 **Vulnerability:** The `users` table RLS update policy used a self-referencing subquery in the `WITH CHECK` clause to prevent updates to `role` and `suspended` columns, which causes infinite recursion and restricts valid row updates.
 **Learning:** RLS `WITH CHECK` clauses shouldn't be used to hardcode values for mass-assignment prevention. Self-referencing subqueries in `UPDATE` policies can cause infinite recursion.
 **Prevention:** Use `BEFORE UPDATE` triggers (e.g., `ensure_user_role_and_status`) to restrict modifications on sensitive workflow columns, and omit `WITH CHECK` if it only duplicates the `USING` clause.
+## 2024-05-24 - Array Mass Assignment in RLS INSERT Policies
+**Vulnerability:** IDOR/Privilege Escalation during family creation. An attacker could forcefully add other users to their new family without consent by providing arbitrary UIDs in the `member_uids` array during the `INSERT` operation.
+**Learning:** Even if a field is not exposed in the client UI or has a default value (`'{}'`), the Supabase/PostgREST API allows any field to be populated on `INSERT`. If the RLS `WITH CHECK` clause does not explicitly restrict the contents of array fields like `member_uids`, it results in a mass assignment vulnerability.
+**Prevention:** For tables with array-based membership columns populated upon creation, always use the `WITH CHECK` clause in the `INSERT` policy to strictly define the initial array state (e.g., `member_uids = array[public.auth_uid_text()]`), overriding any client-provided input.
