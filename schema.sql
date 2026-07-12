@@ -245,10 +245,10 @@ begin
     raise exception 'Unauthorized to update uid';
   end if;
 
-  -- Prevent non-admins from modifying role or suspended status
-  if old.role is distinct from new.role or old.suspended is distinct from new.suspended then
+  -- Prevent non-admins from modifying role, suspended status, or family_id
+  if old.role is distinct from new.role or old.suspended is distinct from new.suspended or old.family_id is distinct from new.family_id then
     if not exists (select 1 from users where uid = public.auth_uid_text() and role = 'admin') then
-      raise exception 'Unauthorized to update role or suspended status';
+      raise exception 'Unauthorized to update role, suspended status, or family_id';
     end if;
   end if;
 
