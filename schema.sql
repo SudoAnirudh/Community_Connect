@@ -262,6 +262,35 @@ create trigger ensure_user_role_and_status
   for each row
   execute function protect_user_role_and_status();
 
+create or replace function protect_event_fields()
+returns trigger
+security definer set search_path = public
+language plpgsql
+as $$
+begin
+  -- Allow service roles and superusers
+  if coalesce(current_setting('role', true), '') in ('service_role', 'postgres') then
+    return new;
+  end if;
+
+  if old.created_by is distinct from new.created_by then
+    raise exception 'Unauthorized to update created_by';
+  end if;
+
+  if old.status is distinct from new.status then
+    raise exception 'Unauthorized to update status';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists ensure_event_fields on events;
+create trigger ensure_event_fields
+  before update on events
+  for each row
+  execute function protect_event_fields();
+
 -- ==========================================
 -- RLS Policies
 -- ==========================================
