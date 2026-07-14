@@ -13,6 +13,7 @@ interface Family {
 const FamiliesDashboard = () => {
   const [families, setFamilies] = useState<Family[]>([]);
   const [loading, setLoading] = useState(true);
+  const [processingState, setProcessingState] = useState<{ id: string, action: 'approved' | 'rejected' } | null>(null);
 
   useEffect(() => {
     const fetchFamilies = async () => {
@@ -48,6 +49,7 @@ const FamiliesDashboard = () => {
   }, []);
 
   const handleUpdateStatus = async (id: string, status: 'approved' | 'rejected') => {
+    setProcessingState({ id, action: status });
     try {
       const { error } = await supabase
         .from('families')
@@ -57,6 +59,8 @@ const FamiliesDashboard = () => {
     } catch (error) {
       console.error("Error updating status: ", error);
       alert("Failed to update status.");
+    } finally {
+      setProcessingState(null);
     }
   };
 
@@ -98,16 +102,20 @@ const FamiliesDashboard = () => {
                 <button 
                   className="btn btn-success" 
                   style={{ flex: 1, justifyContent: 'center' }}
+                  disabled={!!processingState}
                   onClick={() => handleUpdateStatus(family.id, 'approved')}
                 >
-                  <Check weight="bold" /> Approve
+                  {processingState?.id === family.id && processingState.action === 'approved' ? <CircleNotch className="spinner" /> : <Check weight="bold" />}
+                  {processingState?.id === family.id && processingState.action === 'approved' ? 'Approving...' : 'Approve'}
                 </button>
                 <button 
                   className="btn btn-danger" 
                   style={{ flex: 1, justifyContent: 'center' }}
+                  disabled={!!processingState}
                   onClick={() => handleUpdateStatus(family.id, 'rejected')}
                 >
-                  <X weight="bold" /> Reject
+                  {processingState?.id === family.id && processingState.action === 'rejected' ? <CircleNotch className="spinner" /> : <X weight="bold" />}
+                  {processingState?.id === family.id && processingState.action === 'rejected' ? 'Rejecting...' : 'Reject'}
                 </button>
               </div>
             </div>
