@@ -29,3 +29,8 @@
 **Vulnerability:** A malicious user creating a family could inject arbitrary user IDs into the `member_uids` array because the RLS insert policy lacked restrictions for this column.
 **Learning:** RLS insert policies must explicitly restrict the initial values of array-based membership columns (using `WITH CHECK`) since users can supply custom values explicitly during an INSERT.
 **Prevention:** Always use `WITH CHECK` clauses in RLS `INSERT` policies to strictly bind the initial array contents of membership columns to the creator (e.g., `member_uids = array[public.auth_uid_text()]`) to prevent arbitrary user injection upon record creation.
+
+## 2026-07-11 - [PostgreSQL Mass-Assignment on Array Columns]
+**Vulnerability:** A privilege escalation vulnerability existed where any regular family member could modify the `member_uids` array in the `families` table to add arbitrary users to the family without admin approval, because the `UPDATE` RLS policy allowed them to modify the row but didn't restrict which columns they could change.
+**Learning:** Array-based membership columns (like `member_uids`) are susceptible to mass-assignment/IDOR vulnerabilities if they are not explicitly protected by column-level restrictions or triggers, even when the row-level policy restricts access to valid members.
+**Prevention:** Always implement `BEFORE UPDATE` triggers to protect sensitive array columns (e.g., membership lists) from unauthorized modification by standard members, ensuring only users with admin privileges can alter them.

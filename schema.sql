@@ -155,6 +155,15 @@ begin
     end if;
   end if;
 
+  if old.member_uids is distinct from new.member_uids then
+    -- Only allow family admin or system admins to change member_uids
+    if old.admin_uid is distinct from public.auth_uid_text() and not exists (
+      select 1 from users u where u.uid = public.auth_uid_text() and u.role = 'admin'
+    ) then
+      raise exception 'Unauthorized to update member_uids';
+    end if;
+  end if;
+
   return new;
 end;
 $$;
