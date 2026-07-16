@@ -1,0 +1,3 @@
+## 2024-10-26 - Unstyled form elements and missing visual feedback
+**Learning:** The app's design system relies on specific utility classes (like `.input` and `.spinner`), but some core forms (like Login) mistakenly used non-existent classes (e.g. `.input-field`) and the `.spinner` animation was never defined in CSS, resulting in static loading icons across multiple dashboards. Forms also consistently lacked `htmlFor`/`id` bindings.
+**Action:** When updating forms in this app, always ensure they use the correct `.input` class with explicit explicit `htmlFor`/`id` bindings. Ensure visual feedback mechanisms (like spinners or disabled button states) have their required CSS backing to function properly.
