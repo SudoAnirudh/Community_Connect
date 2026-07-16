@@ -197,6 +197,37 @@ create trigger ensure_family_verification_status
   execute function protect_family_verification_status();
 
 
+create or replace function protect_family_member_uids()
+returns trigger
+security definer set search_path = public
+language plpgsql
+as $$
+begin
+  -- Allow service roles and superusers
+  if coalesce(current_setting('role', true), '') in ('service_role', 'postgres') then
+    return new;
+  end if;
+
+  if old.member_uids is distinct from new.member_uids then
+    -- Only allow current admin or system admins to change member_uids
+    if old.admin_uid is distinct from public.auth_uid_text() and not exists (
+      select 1 from users u where u.uid = public.auth_uid_text() and u.role = 'admin'
+    ) then
+      raise exception 'Unauthorized to update member_uids';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists ensure_family_member_uids on families;
+create trigger ensure_family_member_uids
+  before update on families
+  for each row
+  execute function protect_family_member_uids();
+
+
 create or replace function protect_join_request_status()
 returns trigger
 security definer set search_path = public
