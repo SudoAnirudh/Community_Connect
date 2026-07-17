@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabase';
 import { EyeSlash, CheckCircle, Warning, MagnifyingGlass } from '@phosphor-icons/react';
 
@@ -93,10 +93,13 @@ const ReportsDashboard = () => {
     }
   };
 
-  const filteredReports = reports.filter(rep => 
-    rep.reason?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    rep.reportedBy?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredReports = useMemo(() => {
+    const lowerSearch = searchTerm.toLowerCase();
+    return reports.filter(rep =>
+      rep.reason?.toLowerCase().includes(lowerSearch) ||
+      rep.reportedBy?.toLowerCase().includes(lowerSearch)
+    );
+  }, [reports, searchTerm]);
 
   return (
     <div>
