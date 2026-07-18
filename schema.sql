@@ -414,3 +414,11 @@ create policy "Only admins can read/modify reports" on reports
       where u.uid = public.auth_uid_text() and u.role = 'admin'
     )
   );
+
+-- ==========================================
+-- Performance Indexes
+-- ==========================================
+create index if not exists idx_join_requests_family_id on join_requests(family_id);
+create index if not exists idx_notices_created_at on notices(created_at desc);
+create index if not exists idx_users_created_at on users(created_at desc);
+create index if not exists idx_events_date on events(date);
