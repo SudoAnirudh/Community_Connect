@@ -29,3 +29,8 @@
 **Vulnerability:** A malicious user creating a family could inject arbitrary user IDs into the `member_uids` array because the RLS insert policy lacked restrictions for this column.
 **Learning:** RLS insert policies must explicitly restrict the initial values of array-based membership columns (using `WITH CHECK`) since users can supply custom values explicitly during an INSERT.
 **Prevention:** Always use `WITH CHECK` clauses in RLS `INSERT` policies to strictly bind the initial array contents of membership columns to the creator (e.g., `member_uids = array[public.auth_uid_text()]`) to prevent arbitrary user injection upon record creation.
+
+## 2024-06-25 - [Preventing Mass-Assignment on Event Status and Creator via Triggers]
+**Vulnerability:** IDOR and Privilege Escalation allowing any event creator to reassign ownership (by updating `created_by`) or prematurely alter the workflow state (by updating `status`) of their events.
+**Learning:** The RLS `UPDATE` policy for the `events` table only restricted WHICH rows a creator could update, but failed to restrict WHICH columns could be modified. Since RLS cannot easily prevent column-level mass-assignment without recursion, users could directly update `created_by` or `status` via the Supabase PostgREST API.
+**Prevention:** Implement `BEFORE UPDATE` triggers (`ensure_event_status_and_creator`) that use `security definer set search_path = public` to enforce column-level immutability or restrict updates to privileged roles only, safely bypassing for `service_role`.
