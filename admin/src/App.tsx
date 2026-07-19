@@ -5,15 +5,15 @@ import type { User } from '@supabase/supabase-js';
 
 import './index.css';
 import Layout from './components/Layout';
-import Login from './Login';
-import FamiliesDashboard from './FamiliesDashboard';
-import NoticesDashboard from './NoticesDashboard';
-import OverviewDashboard from './pages/OverviewDashboard';
-import AnalyticsDashboard from './pages/AnalyticsDashboard';
-import UsersDashboard from './pages/UsersDashboard';
-import InvitationsDashboard from './pages/InvitationsDashboard';
-import ReportsDashboard from './pages/ReportsDashboard';
-import SettingsDashboard from './pages/SettingsDashboard';
+const Login = React.lazy(() => import('./Login'));
+const FamiliesDashboard = React.lazy(() => import('./FamiliesDashboard'));
+const NoticesDashboard = React.lazy(() => import('./NoticesDashboard'));
+const OverviewDashboard = React.lazy(() => import('./pages/OverviewDashboard'));
+const AnalyticsDashboard = React.lazy(() => import('./pages/AnalyticsDashboard'));
+const UsersDashboard = React.lazy(() => import('./pages/UsersDashboard'));
+const InvitationsDashboard = React.lazy(() => import('./pages/InvitationsDashboard'));
+const ReportsDashboard = React.lazy(() => import('./pages/ReportsDashboard'));
+const SettingsDashboard = React.lazy(() => import('./pages/SettingsDashboard'));
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -47,7 +47,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
+      <React.Suspense fallback={<div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', color: 'var(--text-primary)' }}>Loading...</div>}>
+        <Routes>
         <Route path="/login" element={<Login />} />
         
         <Route path="/" element={<Navigate to="/overview" replace />} />
@@ -63,7 +64,8 @@ function App() {
         <Route path="/reports" element={<ProtectedRoute><ReportsDashboard /></ProtectedRoute>} />
         
         <Route path="/settings" element={<ProtectedRoute><SettingsDashboard /></ProtectedRoute>} />
-      </Routes>
+        </Routes>
+      </React.Suspense>
     </BrowserRouter>
   );
 }
