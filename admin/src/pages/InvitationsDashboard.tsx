@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabase';
 import { Trash, EnvelopeSimple, MagnifyingGlass } from '@phosphor-icons/react';
 
@@ -59,10 +59,13 @@ const InvitationsDashboard = () => {
     }
   };
 
-  const filteredInvitations = invitations.filter(inv => 
-    inv.code?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    inv.familyId?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredInvitations = useMemo(() => {
+    const lowerSearch = searchTerm.toLowerCase();
+    return invitations.filter(inv =>
+      inv.code?.toLowerCase().includes(lowerSearch) ||
+      inv.familyId?.toLowerCase().includes(lowerSearch)
+    );
+  }, [invitations, searchTerm]);
 
   return (
     <div>
