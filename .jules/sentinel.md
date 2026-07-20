@@ -29,3 +29,8 @@
 **Vulnerability:** A malicious user creating a family could inject arbitrary user IDs into the `member_uids` array because the RLS insert policy lacked restrictions for this column.
 **Learning:** RLS insert policies must explicitly restrict the initial values of array-based membership columns (using `WITH CHECK`) since users can supply custom values explicitly during an INSERT.
 **Prevention:** Always use `WITH CHECK` clauses in RLS `INSERT` policies to strictly bind the initial array contents of membership columns to the creator (e.g., `member_uids = array[public.auth_uid_text()]`) to prevent arbitrary user injection upon record creation.
+
+## 2024-07-20 - [Event Ownership IDOR via Mass-Assignment]
+**Vulnerability:** Event creators could maliciously transfer ownership of an event to another user or alter its status by updating the `created_by` or `status` columns, as RLS policies on `events` did not restrict column-level modifications.
+**Learning:** RLS `UPDATE` policies that only check `created_by = public.auth_uid_text()` permit the owner to modify *any* column in their row, including the ownership identifier itself, leading to potential spoofing or state corruption.
+**Prevention:** Enforce immutability of ownership columns (`created_by`) and role-based access for workflow columns (`status`) using `BEFORE UPDATE` triggers on the `events` table to prevent unauthorized modifications.
