@@ -29,3 +29,7 @@
 **Vulnerability:** A malicious user creating a family could inject arbitrary user IDs into the `member_uids` array because the RLS insert policy lacked restrictions for this column.
 **Learning:** RLS insert policies must explicitly restrict the initial values of array-based membership columns (using `WITH CHECK`) since users can supply custom values explicitly during an INSERT.
 **Prevention:** Always use `WITH CHECK` clauses in RLS `INSERT` policies to strictly bind the initial array contents of membership columns to the creator (e.g., `member_uids = array[public.auth_uid_text()]`) to prevent arbitrary user injection upon record creation.
+## 2024-07-21 - Missing BEFORE UPDATE triggers for mass assignment
+**Vulnerability:** The events table lacked a trigger to prevent modifications to created_by and status columns, and the families table lacked a trigger for member_uids.
+**Learning:** In PostgreSQL, Row-Level Security (RLS) UPDATE policies with only a USING clause restrict which rows can be modified, but not which columns. Array-based membership columns and workflow status columns require explicit BEFORE UPDATE triggers to prevent IDOR/mass-assignment vulnerabilities.
+**Prevention:** Always implement BEFORE UPDATE triggers alongside RLS policies for tables that contain immutable ownership columns or restricted workflow state columns.
