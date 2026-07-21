@@ -262,6 +262,66 @@ create trigger ensure_user_role_and_status
   for each row
   execute function protect_user_role_and_status();
 
+create or replace function protect_event_status_and_creator()
+returns trigger
+security definer set search_path = public
+language plpgsql
+as $$
+begin
+  -- Allow service roles and superusers
+  if coalesce(current_setting('role', true), '') in ('service_role', 'postgres') then
+    return new;
+  end if;
+
+  if old.created_by is distinct from new.created_by then
+    raise exception 'Unauthorized to update created_by';
+  end if;
+
+  if old.status is distinct from new.status then
+    if not exists (select 1 from users u where u.uid = public.auth_uid_text() and u.role = 'admin') then
+      raise exception 'Unauthorized to update status';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists ensure_event_status_and_creator on events;
+create trigger ensure_event_status_and_creator
+  before update on events
+  for each row
+  execute function protect_event_status_and_creator();
+
+create or replace function protect_family_member_uids()
+returns trigger
+security definer set search_path = public
+language plpgsql
+as $$
+begin
+  -- Allow service roles and superusers
+  if coalesce(current_setting('role', true), '') in ('service_role', 'postgres') then
+    return new;
+  end if;
+
+  if old.member_uids is distinct from new.member_uids then
+    if old.admin_uid is distinct from public.auth_uid_text() and not exists (
+      select 1 from users u where u.uid = public.auth_uid_text() and u.role = 'admin'
+    ) then
+      raise exception 'Unauthorized to update member_uids';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists ensure_family_member_uids on families;
+create trigger ensure_family_member_uids
+  before update on families
+  for each row
+  execute function protect_family_member_uids();
+
 -- ==========================================
 -- RLS Policies
 -- ==========================================
