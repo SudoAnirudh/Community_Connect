@@ -97,8 +97,9 @@ const NoticesDashboard = () => {
           </h2>
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Title</label>
+              <label htmlFor="title" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Title</label>
               <input 
+                id="title"
                 className="input" 
                 value={title} 
                 onChange={e => setTitle(e.target.value)} 
@@ -107,8 +108,9 @@ const NoticesDashboard = () => {
               />
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Description</label>
+              <label htmlFor="description" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Description</label>
               <textarea 
+                id="description"
                 className="input" 
                 value={description} 
                 onChange={e => setDescription(e.target.value)} 
@@ -119,16 +121,16 @@ const NoticesDashboard = () => {
             </div>
             <div style={{ display: 'flex', gap: '16px' }}>
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Priority</label>
-                <select className="input" value={priority} onChange={e => setPriority(e.target.value)}>
+                <label htmlFor="priority" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Priority</label>
+                <select id="priority" className="input" value={priority} onChange={e => setPriority(e.target.value)}>
                   <option value="high">High</option>
                   <option value="medium">Medium</option>
                   <option value="low">Low</option>
                 </select>
               </div>
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Icon</label>
-                <select className="input" value={selectedIcon} onChange={e => setSelectedIcon(e.target.value)}>
+                <label htmlFor="icon" style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>Icon</label>
+                <select id="icon" className="input" value={selectedIcon} onChange={e => setSelectedIcon(e.target.value)}>
                   {ICONS.map(i => <option key={i} value={i}>{i}</option>)}
                 </select>
               </div>
