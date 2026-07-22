@@ -29,3 +29,7 @@
 **Vulnerability:** A malicious user creating a family could inject arbitrary user IDs into the `member_uids` array because the RLS insert policy lacked restrictions for this column.
 **Learning:** RLS insert policies must explicitly restrict the initial values of array-based membership columns (using `WITH CHECK`) since users can supply custom values explicitly during an INSERT.
 **Prevention:** Always use `WITH CHECK` clauses in RLS `INSERT` policies to strictly bind the initial array contents of membership columns to the creator (e.g., `member_uids = array[public.auth_uid_text()]`) to prevent arbitrary user injection upon record creation.
+## 2024-10-24 - Missing IDOR Protection on Array-Based Columns
+**Vulnerability:** Any family member could modify the member_uids array in the families table (IDOR/Mass Assignment).
+**Learning:** Row-Level Security (RLS) UPDATE policies restrict which rows can be modified, but not which columns. Any user allowed to update a row can modify any unprotected column in that row.
+**Prevention:** Always use explicit BEFORE UPDATE triggers to enforce role-based immutability and restrictions on sensitive array-based membership columns.
