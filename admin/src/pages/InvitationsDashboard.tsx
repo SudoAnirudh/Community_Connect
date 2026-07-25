@@ -10,7 +10,8 @@ const InvitationsDashboard = () => {
   const fetchInvitations = async () => {
     const { data, error } = await supabase
       .from('invitations')
-      .select('*')
+      // Optimization: Fetch only required columns instead of full row
+      .select('id, code, family_id, used, created_at')
       .order('created_at', { ascending: false });
     if (error) {
       console.error("Error fetching invitations:", error);
