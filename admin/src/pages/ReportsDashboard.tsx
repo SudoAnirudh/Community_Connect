@@ -10,7 +10,8 @@ const ReportsDashboard = () => {
   const fetchReports = async () => {
     const { data, error } = await supabase
       .from('reports')
-      .select('*')
+      // Optimization: Fetch only required columns instead of full row
+      .select('id, content_type, content_id, reason, reported_by, status, action_taken, created_at')
       .order('created_at', { ascending: false });
     if (error) {
       console.error("Error fetching reports:", error);
