@@ -29,3 +29,7 @@
 **Vulnerability:** A malicious user creating a family could inject arbitrary user IDs into the `member_uids` array because the RLS insert policy lacked restrictions for this column.
 **Learning:** RLS insert policies must explicitly restrict the initial values of array-based membership columns (using `WITH CHECK`) since users can supply custom values explicitly during an INSERT.
 **Prevention:** Always use `WITH CHECK` clauses in RLS `INSERT` policies to strictly bind the initial array contents of membership columns to the creator (e.g., `member_uids = array[public.auth_uid_text()]`) to prevent arbitrary user injection upon record creation.
+## 2024-06-25 - Prevent Field Modification IDOR via Triggers
+**Vulnerability:** IDOR (Insecure Direct Object Reference) / Privilege Escalation. RLS `UPDATE` policies correctly restricted which rows could be modified (e.g., event creator modifying an event), but didn't restrict *which columns* could be modified. This allowed an event creator to overwrite `status` or `created_by`, and a family admin to overwrite `member_uids`.
+**Learning:** RLS controls row-level access, but allows modifying any column by default. When some columns govern workflow state (`status`), ownership (`created_by`), or membership (`member_uids`), updating them must be restricted explicitly.
+**Prevention:** Implement `BEFORE UPDATE` triggers to inspect `old.field is distinct from new.field` on sensitive columns, and explicitly block modifications for unauthorized users (raising exceptions).
