@@ -197,6 +197,38 @@ create trigger ensure_family_verification_status
   execute function protect_family_verification_status();
 
 
+create or replace function protect_event_status_and_creator()
+returns trigger
+security definer set search_path = public
+language plpgsql
+as $$
+begin
+  -- Allow service roles and superusers
+  if coalesce(current_setting('role', true), '') in ('service_role', 'postgres') then
+    return new;
+  end if;
+
+  if old.created_by is distinct from new.created_by then
+    raise exception 'Unauthorized to update created_by';
+  end if;
+
+  if old.status is distinct from new.status then
+    if not exists (select 1 from users where uid = public.auth_uid_text() and role = 'admin') then
+      raise exception 'Unauthorized to update event status';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists ensure_event_status_and_creator on events;
+create trigger ensure_event_status_and_creator
+  before update on events
+  for each row
+  execute function protect_event_status_and_creator();
+
+
 create or replace function protect_join_request_status()
 returns trigger
 security definer set search_path = public
