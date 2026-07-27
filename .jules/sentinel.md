@@ -29,3 +29,8 @@
 **Vulnerability:** A malicious user creating a family could inject arbitrary user IDs into the `member_uids` array because the RLS insert policy lacked restrictions for this column.
 **Learning:** RLS insert policies must explicitly restrict the initial values of array-based membership columns (using `WITH CHECK`) since users can supply custom values explicitly during an INSERT.
 **Prevention:** Always use `WITH CHECK` clauses in RLS `INSERT` policies to strictly bind the initial array contents of membership columns to the creator (e.g., `member_uids = array[public.auth_uid_text()]`) to prevent arbitrary user injection upon record creation.
+
+## 2024-07-27 - [PostgreSQL RLS IDOR Vulnerability in UPDATE Policies for Events]
+**Vulnerability:** IDOR (Insecure Direct Object Reference) / Mass-Assignment. The RLS `UPDATE` policies for the `events` table allowed the event creator to update rows, but did not restrict modifications to specific columns like `created_by` or `status`.
+**Learning:** RLS `UPDATE` policies determine which rows a user can modify, but not which columns within those rows can be changed. This allows malicious actors to reassign ownership (`created_by`) or bypass intended status workflows by supplying custom column values during an update.
+**Prevention:** Always implement `BEFORE UPDATE` triggers (with `security definer` and `set search_path = public`) for sensitive columns on tables that rely on RLS, explicitly raising exceptions for unauthorized updates while safely allowing backend `service_role` access.
