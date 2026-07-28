@@ -48,6 +48,8 @@ const FamiliesDashboard = () => {
   }, []);
 
   const handleUpdateStatus = async (id: string, status: 'approved' | 'rejected') => {
+    if (!window.confirm(`Are you sure you want to ${status} this family verification request?`)) return;
+
     try {
       const { error } = await supabase
         .from('families')
