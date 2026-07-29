@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from './supabase';
-import { ShieldCheck } from '@phosphor-icons/react';
+import { ShieldCheck, CircleNotch } from '@phosphor-icons/react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
@@ -73,7 +73,7 @@ export default function Login() {
             style={{ marginTop: '0.5rem', justifyContent: 'center' }}
             disabled={loading}
           >
-            {loading ? 'Logging in...' : 'Sign In'}
+            {loading ? <><CircleNotch className="spinner" /> Logging in...</> : 'Sign In'}
           </button>
         </form>
       </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, Shield, Database } from '@phosphor-icons/react';
+import { Bell, Shield, Database, CircleNotch } from '@phosphor-icons/react';
 
 const SettingsDashboard = () => {
   const [loading, setLoading] = useState(false);
@@ -33,7 +33,7 @@ const SettingsDashboard = () => {
           disabled={loading}
           style={{ width: '120px', justifyContent: 'center' }}
         >
-          {loading ? 'Saving...' : 'Save Changes'}
+          {loading ? <><CircleNotch className="spinner" /> Saving...</> : 'Save Changes'}
         </button>
       </div>
 
