@@ -29,3 +29,7 @@
 **Vulnerability:** A malicious user creating a family could inject arbitrary user IDs into the `member_uids` array because the RLS insert policy lacked restrictions for this column.
 **Learning:** RLS insert policies must explicitly restrict the initial values of array-based membership columns (using `WITH CHECK`) since users can supply custom values explicitly during an INSERT.
 **Prevention:** Always use `WITH CHECK` clauses in RLS `INSERT` policies to strictly bind the initial array contents of membership columns to the creator (e.g., `member_uids = array[public.auth_uid_text()]`) to prevent arbitrary user injection upon record creation.
+## 2024-06-28 - [Prevent Mass-Assignment on Array-Based Membership Columns]
+**Vulnerability:** IDOR allowing regular family members to add or remove arbitrary users from a family by updating the `member_uids` array.
+**Learning:** Row-level policies (`UPDATE` RLS) for shared resources only restrict which rows a user can modify, not the columns. Array-based membership columns are fully exposed to mass-assignment by any user who passes the `USING` clause.
+**Prevention:** Implement explicit `BEFORE UPDATE` triggers to protect array-based membership columns, ensuring only the owner/admin or a backend service can modify them.
