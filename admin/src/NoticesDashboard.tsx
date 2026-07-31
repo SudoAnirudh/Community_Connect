@@ -143,6 +143,7 @@ const NoticesDashboard = () => {
                     aria-label={`Select theme color ${c}`}
                     title={`Select theme color ${c}`}
                     onClick={() => setSelectedColor(c)}
+                    aria-label={`Select theme color ${c}`}
                     style={{
                       width: '32px', height: '32px', borderRadius: '50%', border: 'none',
                       backgroundColor: c, cursor: 'pointer',
