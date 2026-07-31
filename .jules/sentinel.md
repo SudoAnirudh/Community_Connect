@@ -29,3 +29,8 @@
 **Vulnerability:** A malicious user creating a family could inject arbitrary user IDs into the `member_uids` array because the RLS insert policy lacked restrictions for this column.
 **Learning:** RLS insert policies must explicitly restrict the initial values of array-based membership columns (using `WITH CHECK`) since users can supply custom values explicitly during an INSERT.
 **Prevention:** Always use `WITH CHECK` clauses in RLS `INSERT` policies to strictly bind the initial array contents of membership columns to the creator (e.g., `member_uids = array[public.auth_uid_text()]`) to prevent arbitrary user injection upon record creation.
+
+## 2024-05-24 - Missing BEFORE UPDATE Triggers on Array Columns
+**Vulnerability:** IDOR/mass-assignment vulnerability on the `member_uids` array column in the `families` table. Any family member could update the array to add or remove members because RLS `UPDATE` policies only restrict row-level access, not column-level modifications.
+**Learning:** Array-based membership columns require explicit `BEFORE UPDATE` triggers to enforce immutability or restrict updates to specific ownership roles.
+**Prevention:** Always implement `BEFORE UPDATE` triggers in Supabase PostgreSQL schema when using RLS `UPDATE` policies on tables with unbounded array columns or sensitive state columns.
