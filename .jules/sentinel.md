@@ -29,3 +29,7 @@
 **Vulnerability:** A malicious user creating a family could inject arbitrary user IDs into the `member_uids` array because the RLS insert policy lacked restrictions for this column.
 **Learning:** RLS insert policies must explicitly restrict the initial values of array-based membership columns (using `WITH CHECK`) since users can supply custom values explicitly during an INSERT.
 **Prevention:** Always use `WITH CHECK` clauses in RLS `INSERT` policies to strictly bind the initial array contents of membership columns to the creator (e.g., `member_uids = array[public.auth_uid_text()]`) to prevent arbitrary user injection upon record creation.
+## 2025-02-14 - Prevent mass assignment vulnerabilities on Events
+**Vulnerability:** The `events.created_by` and `events.status` fields could be arbitrarily modified during an update.
+**Learning:** Even if `WITH CHECK` clauses ensure safe values on `INSERT`, they do not prevent modifications during `UPDATE`. Only updating allowed columns is essential, requiring a `BEFORE UPDATE` trigger if `UPDATE` access is allowed.
+**Prevention:** Always use `BEFORE UPDATE` triggers to restrict mass-assignment/IDOR vulnerabilities on immutable columns like `created_by` or workflow states like `status`.
