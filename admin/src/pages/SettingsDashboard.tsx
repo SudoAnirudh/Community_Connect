@@ -48,12 +48,13 @@ const SettingsDashboard = () => {
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
+              <label htmlFor="allowNewRegistrations" style={{ cursor: 'pointer', flex: 1, paddingRight: '16px' }}>
                 <div style={{ fontWeight: '500', marginBottom: '4px' }}>Allow New Registrations</div>
                 <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Users can create new accounts via the mobile app.</div>
-              </div>
+              </label>
               <label className="switch">
                 <input 
+                  id="allowNewRegistrations"
                   type="checkbox" 
                   checked={settings.allowNewRegistrations}
                   onChange={(e) => setSettings({...settings, allowNewRegistrations: e.target.checked})}
@@ -65,12 +66,13 @@ const SettingsDashboard = () => {
             <hr style={{ borderTop: '1px solid var(--border)', borderBottom: 'none' }} />
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
+              <label htmlFor="requireAdminVerification" style={{ cursor: 'pointer', flex: 1, paddingRight: '16px' }}>
                 <div style={{ fontWeight: '500', marginBottom: '4px' }}>Require Admin Verification for Families</div>
                 <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>New families must be verified before appearing in search.</div>
-              </div>
+              </label>
               <label className="switch">
                 <input 
+                  id="requireAdminVerification"
                   type="checkbox" 
                   checked={settings.requireAdminVerification}
                   onChange={(e) => setSettings({...settings, requireAdminVerification: e.target.checked})}
@@ -89,12 +91,13 @@ const SettingsDashboard = () => {
           </div>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
+            <label htmlFor="enablePushNotifications" style={{ cursor: 'pointer', flex: 1, paddingRight: '16px' }}>
               <div style={{ fontWeight: '500', marginBottom: '4px' }}>Enable Push Notifications globally</div>
               <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Allow the system to trigger Firebase Cloud Messaging.</div>
-            </div>
+            </label>
             <label className="switch">
               <input 
+                id="enablePushNotifications"
                 type="checkbox" 
                 checked={settings.enablePushNotifications}
                 onChange={(e) => setSettings({...settings, enablePushNotifications: e.target.checked})}
@@ -112,12 +115,13 @@ const SettingsDashboard = () => {
           </div>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
+            <label htmlFor="maintenanceMode" style={{ cursor: 'pointer', flex: 1, paddingRight: '16px' }}>
               <div style={{ fontWeight: '500', marginBottom: '4px' }}>Maintenance Mode</div>
               <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Disable access to all mobile apps and display a maintenance screen.</div>
-            </div>
+            </label>
             <label className="switch">
               <input 
+                id="maintenanceMode"
                 type="checkbox" 
                 checked={settings.maintenanceMode}
                 onChange={(e) => setSettings({...settings, maintenanceMode: e.target.checked})}
