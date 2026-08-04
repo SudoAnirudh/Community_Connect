@@ -1,0 +1,3 @@
+## 2026-08-04 - Missing Form Label Associations Pattern
+**Learning:** The app's forms consistently separate <label> and <input>/<select> tags without utilizing htmlFor or id attributes, relying entirely on visual proximity. This breaks accessibility for screen reader users who cannot determine the input's purpose. Furthermore, error messages are rendered dynamically without role="alert".
+**Action:** Always verify htmlFor and id bindings in any form updates or creations, and ensure dynamic state changes (like errors or loading states via aria-busy) are explicitly announced to assistive technology.
