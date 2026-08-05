@@ -30,12 +30,12 @@ export default function Login() {
   };
 
   return (
-    <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', backgroundColor: 'var(--bg-main)' }}>
-      <div className="card" style={{ width: '100%', maxWidth: '400px', padding: '2rem' }}>
+    <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', backgroundColor: 'var(--bg-dark)' }}>
+      <div className="glass-card" style={{ width: '100%', maxWidth: '400px', padding: '2rem' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '2rem' }}>
           <ShieldCheck size={48} color="var(--primary)" weight="fill" />
-          <h1 style={{ marginTop: '1rem', fontSize: '1.5rem', color: 'var(--text-primary)' }}>App Admin Login</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Community Connect Maintenance</p>
+          <h1 style={{ marginTop: '1rem', fontSize: '1.5rem', color: 'var(--text-main)' }}>App Admin Login</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Community Connect Maintenance</p>
         </div>
 
         {error && (
@@ -46,22 +46,24 @@ export default function Login() {
 
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Email</label>
+            <label htmlFor="email" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>Email</label>
             <input 
+              id="email"
               type="email" 
               required
-              className="input-field" 
+              className="input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@communityconnect.app" 
             />
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Password</label>
+            <label htmlFor="password" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>Password</label>
             <input 
+              id="password"
               type="password" 
               required
-              className="input-field" 
+              className="input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••" 
@@ -69,7 +71,7 @@ export default function Login() {
           </div>
           <button 
             type="submit" 
-            className="btn btn-primary" 
+            className="btn"
             style={{ marginTop: '0.5rem', justifyContent: 'center' }}
             disabled={loading}
           >
