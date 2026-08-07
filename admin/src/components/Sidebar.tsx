@@ -19,7 +19,7 @@ const Sidebar = () => {
   };
 
   return (
-    <nav className="sidebar">
+    <nav className="sidebar" aria-label="Main Navigation">
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px' }}>
         <ShieldCheck size={32} color="var(--primary)" weight="fill" />
         <h2 style={{ fontSize: '20px' }}>Super Admin</h2>
