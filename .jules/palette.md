@@ -1,0 +1,3 @@
+## 2024-08-08 - Inputs and forms labels
+**Learning:** The `Login.tsx` form inputs lack standard `id` attributes that link `<label>`s (using `htmlFor` / `for`) to `<input>`s, creating an accessibility gap for screen readers and preventing users from clicking labels to focus inputs. Also, `Login.tsx` uses a non-existent `input-field` class instead of the standard `.input` class defined in `index.css`.
+**Action:** Adding `id` to the `<input>` tags and `htmlFor` to their corresponding `<label>` tags. Also fixing the class name to `input` to ensure inputs receive proper styling (focus borders, padding, etc.).
