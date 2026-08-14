@@ -46,22 +46,24 @@ export default function Login() {
 
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Email</label>
+            <label htmlFor="email" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Email</label>
             <input 
+              id="email"
               type="email" 
               required
-              className="input-field" 
+              className="input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@communityconnect.app" 
             />
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Password</label>
+            <label htmlFor="password" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Password</label>
             <input 
+              id="password"
               type="password" 
               required
-              className="input-field" 
+              className="input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••" 
