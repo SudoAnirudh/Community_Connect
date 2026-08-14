@@ -16,7 +16,8 @@ const FamiliesDashboard = () => {
 
   useEffect(() => {
     const fetchFamilies = async () => {
-      const { data, error } = await supabase.from('families').select('*');
+      // Optimization: Fetch only required columns instead of '*' to avoid pulling large array columns like member_uids, reducing network payload and memory usage.
+      const { data, error } = await supabase.from('families').select('id, name, house_name, ward_number, verification_status');
       if (error) {
         console.error("Error fetching families:", error);
         return;
