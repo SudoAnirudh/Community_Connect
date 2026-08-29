@@ -16,7 +16,7 @@ const OverviewDashboard = () => {
           supabase.from('families').select('*', { count: 'exact', head: true }),
           // Optimization: fetch only count instead of full rows
           supabase.from('reports').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-          supabase.from('users').select('*').order('created_at', { ascending: false }).limit(5)
+          supabase.from('users').select('uid, name, phone, role, created_at').order('created_at', { ascending: false }).limit(5)
         ]);
 
         setStats({
