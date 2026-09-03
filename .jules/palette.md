@@ -1,0 +1,3 @@
+## 2026-09-03 - Form Component Accessibility and Styling
+**Learning:** Legacy form components in the React Admin panel frequently lack proper `htmlFor` to `id` mapping for screen readers and mistakenly use the undefined `input-field` CSS class instead of the standard `input` class, breaking base styling. Additionally, dynamic error containers are missing `role="alert"`.
+**Action:** When working on form inputs, explicitly verify and link `<label>` and `<input>` with matching ID attributes. Always use the `input` class for styling text fields, and ensure any dynamically rendered error message includes `role="alert"` so screen readers announce it immediately.
