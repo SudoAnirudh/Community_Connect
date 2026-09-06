@@ -1,0 +1,3 @@
+## 2024-05-18 - Missing label-to-input association in Login component
+**Learning:** Found that `admin/src/Login.tsx` doesn't link the `<label>` and `<input>` properly with `htmlFor` and `id` which creates an accessibility issue for screen readers and affects user experience (users can't click on labels to focus inputs). Also noticed `input-field` class being used on the input elements but standard base CSS class for form input elements is `input` (defined in `admin/src/index.css`), not `input-field`. Error container lacks `role="alert"`. Loading state lacks `Spinner`/`CircleNotch`.
+**Action:** Always verify `htmlFor`/`id` linking for labels, standard `input` CSS class, `role="alert"` for errors, and spinner icons during async loading in the React Admin panel.
