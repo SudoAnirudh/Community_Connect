@@ -20,7 +20,8 @@ const NoticesDashboard = () => {
   const fetchNotices = async () => {
     const { data, error } = await supabase
       .from('notices')
-      .select('*')
+      // ⚡ Bolt: Optimize by explicitly selecting required columns. Measurement: Payload size reduced.
+      .select('id, title, description, priority, icon, color_hex, created_at')
       .order('created_at', { ascending: false });
     if (error) {
       console.error("Error fetching notices:", error);
