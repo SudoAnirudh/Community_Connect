@@ -11,7 +11,8 @@ const UsersDashboard = () => {
   const fetchUsers = async () => {
     const { data, error } = await supabase
       .from('users')
-      .select('*')
+      // ⚡ Bolt: Optimize by explicitly selecting required columns. Measurement: Payload size reduced.
+      .select('uid, name, phone, role, family_id, suspended, created_at')
       .order('created_at', { ascending: false });
     if (error) {
       console.error("Error fetching users:", error);

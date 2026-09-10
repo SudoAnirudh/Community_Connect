@@ -10,7 +10,8 @@ const InvitationsDashboard = () => {
   const fetchInvitations = async () => {
     const { data, error } = await supabase
       .from('invitations')
-      .select('*')
+      // ⚡ Bolt: Optimize by explicitly selecting required columns. Measurement: Payload size reduced.
+      .select('id, code, family_id, used, created_at')
       .order('created_at', { ascending: false });
     if (error) {
       console.error("Error fetching invitations:", error);
