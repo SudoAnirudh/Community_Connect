@@ -1,0 +1,3 @@
+## 2026-09-14 - Fix Legacy Form Accessibility & CSS Classes
+**Learning:** The React Admin panel contains legacy form components that lack proper label-to-input association (`htmlFor` and `id`) and dynamic error message containers missing `role="alert"`. Additionally, standard CSS classes are sometimes incorrect (e.g., `input-field` vs `input`, and `btn-primary` vs `btn`).
+**Action:** When adding or updating form elements, always explicitly link `<label>` and `<input>` elements using matching `htmlFor` and `id` attributes. Ensure dynamic error containers have `role="alert"`. Use the standard base CSS classes `input` and `btn` as defined in `admin/src/index.css`.
